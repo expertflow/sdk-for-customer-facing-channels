@@ -1,31 +1,36 @@
-var wss_server_ip;
-var wss_server_port;
-var dialling_uri;
-var sip_extension;
-var extension_password;
+var wssServerIp;
+var wssServerPort;
+var diallingURI;
+var sipExtension;
+var extensionPassword;
 var IP;
-var wss_port;
-var Dialer_URI;
-var SIP_Password;
-var enable_logs;
-var chat_webhook;
+var wssPort;
+var dialerURI;
+var sipPassword;
+var enableLogs;
+var chatWebhook;
+var preChatForm;
 
 var session;
 var mediaElement;
-var medialocal;
+var mediaLocal;
 var userAgent;
 var ext;
 var register = false;
 let displayMediaStream;
-var toggle_video;
+var toggleVideo;
 var video;
 var audio;
 var screen;
-var media_acquire = 'end';
-var endcallbtn = false;
+var mediaAcquire = 'end';
+var endCallBtn = false;
 
-const get_dynamic_ext = () => new Promise((resolve, reject) => {
-    resolve(sip_extension);
+/**
+ *
+ * @returns
+ */
+const getDynamicExt = () => new Promise((resolve, reject) => {
+    resolve(sipExtension);
 });
 
 // /* Function to Include js files in the customer application*/
@@ -51,25 +56,52 @@ let socket = {};
  * @param {*} callback
  */
 function widgetConfigs(ccmUrl, widgetIdentifier, callback) {
-    // fetch(`${ccmUrl}/widget-configs/${widgetIdentifier}`)
-    fetch(`${ccmUrl}/widget-configs`)
+    fetch(`${ccmUrl}/widget-configs/${widgetIdentifier}`)
         .then(response => response.json())
         .then((data) => {
             callback(data);
-            wss_server_ip = data.webRTC.wss_server_ip;
-            wss_server_port = data.webRTC.wss_server_port;
-            dialling_uri = data.webRTC.dialling_uri;
-            sip_extension = data.webRTC.sip_extension;
-            extension_password = data.webRTC.extension_password;
-            enable_sip_logs = data.webRTC.enabledSipLogs;
+            wssServerIp = data.webRtc.wssServerIp;
+            wssServerPort = data.webRtc.wssServerPort;
+            diallingURI = data.webRtc.diallingUri;
+            sipExtension = data.webRtc.sipExtension;
+            extensionPassword = data.webRtc.extensionPassword;
+            enable_sip_logs = data.webRtc.enabledSipLogs;
+            enableLogs = enable_sip_logs;
+            IP = wssServerIp;
+            wssPort = wssServerPort;
+            dialerURI = 'sip:' + diallingURI + '@' + wssServerIp;
+            sipPassword = extensionPassword;
 
-            enable_logs = enable_sip_logs;
-            IP = wss_server_ip;
-            wss_port = wss_server_port;
-            Dialer_URI = 'sip:' + dialling_uri + '@' + wss_server_ip;
-            SIP_Password = extension_password;
+            chatWebhook = data.webhook_url;
+            preChatForm = data.form;
+        });
+}
 
-            chat_webhook = data.webhook_url;
+/**
+ * Get Pre Chat Form
+ * @param {*} formUrl
+ * @param {*} formId
+ * @param {*} callback
+ */
+
+function getPreChatForm(formUrl, formId, callback) {
+    fetch(`${formUrl}/forms/${formId}`)
+        .then(response => response.json())
+        .then((data) => {
+            callback(data);
+        });
+}
+
+/**
+ *
+ * @param {*} formUrl
+ * @param {*} callback
+ */
+function formValidation(formUrl, callback) {
+    fetch(`${formUrl}/formValidation`)
+        .then(response => response.json())
+        .then((data) => {
+            callback(data);
         });
 }
 /**
@@ -81,10 +113,11 @@ function widgetConfigs(ccmUrl, widgetIdentifier, callback) {
  * @param {*} channelCustomerIdentifier
  * @param {*} callback
  */
-function establishConnection(serviceIdentifier, channelCustomerIdentifier, callback) {
+function establishConnection(socket_url, serviceIdentifier, channelCustomerIdentifier, callback) {
     try {
         if (this.socket === undefined || !this.socket.connected) {
             if (socket_url !== '') {
+                console.log("going new connection");
                 let origin = new URL(socket_url).origin;
                 let path = new URL(socket_url).pathname;
                 this.socket = io(origin, {
@@ -103,6 +136,7 @@ function establishConnection(serviceIdentifier, channelCustomerIdentifier, callb
         callback(error);
     }
 }
+
 /**
  *  Socket EventListener Function
  *  1- Socket Connection Event
@@ -118,6 +152,14 @@ function eventListeners(callback) {
     this.socket.on('connect', () => {
         if (this.socket.id != undefined) {
             console.log(`you are connected with socket:`, this.socket);
+            let error = localStorage.getItem("error");
+            if (error) {
+                console.log(`${error}`);
+                resumeChat({
+                    serviceIdentifier: this.socket.auth.serviceIdentifier,
+                    channelCustomerIdentifier: this.socket.auth.channelCustomerIdentifier
+                });
+            }
             callback({ type: "SOCKET_CONNECTED", data: this.socket });
         }
     });
@@ -134,7 +176,8 @@ function eventListeners(callback) {
         callback({ type: "SOCKET_DISCONNECTED", data: reason });
     });
     this.socket.on('connect_error', (error) => {
-        console.log(`unable to establish connection with the server: `, error);
+        console.log(`unable to establish connection with the server: `, error.message);
+        localStorage.setItem("error", "1");
         callback({ type: "CONNECT_ERROR", data: error });
     });
     this.socket.on('CHAT_ENDED', (data) => {
@@ -171,7 +214,7 @@ function chatRequest(data) {
                 serviceIdentifier: data.data.serviceIdentifier,
                 additionalAttributes: additionalAttributesData
             };
-            webhookNotifications(data.data.formData);
+            // webhookNotifications(data.data.formData);
             this.socket.emit('CHAT_REQUESTED', obj);
             console.log(`SEND CHAT_REQUESTED DATA:`, obj);
         }
@@ -179,6 +222,100 @@ function chatRequest(data) {
         throw error;
     }
 }
+
+/**
+ * Chat Request Function with customer data
+ * @param {*} data
+ */
+function voiceRequest(data) {
+    try {
+        if (data) {
+            let additionalAttributesData = [];
+            let webChannelDataObj = {
+                key: 'WebChannelData',
+                type: 'WebChannelData',
+                value: {
+                    browserDeviceInfo: data.data.browserDeviceInfo,
+                    queue: data.data.queue,
+                    locale: data.data.locale,
+                    formData: data.data.formData
+                }
+            };
+            additionalAttributesData.push(webChannelDataObj);
+            let obj = {
+                channelCustomerIdentifier: data.data.channelCustomerIdentifier,
+                serviceIdentifier: data.data.serviceIdentifier,
+                additionalAttributes: additionalAttributesData
+            };
+            webhookNotifications(data.data.formData);
+            this.socket.emit('VOICE_REQUESTED', obj);
+            console.log(`SEND VOICE_REQUESTED DATA:`, obj);
+        }
+    } catch (error) {
+        throw error;
+    }
+}
+
+/**
+ * Set Conversation Data Api By Customer Channel Identifier
+ */
+async function setConversationDataByCustomerIdentifier(url, channelIdentifier, data, callback) {
+    try {
+        const response = await fetch(`${url}/${channelIdentifier}/conversation-data-by-identifier`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        });
+
+        if (response.status === 403) {
+            console.error('Forbidden: The server returned a 403 Forbidden response.');
+            callback(response);
+        }
+
+        if (!response.ok) {
+            console.error('Network response was not ok');
+            callback(response);
+        }
+
+        const result = await response.json();
+        console.log('Success:', result);
+        callback(result);
+    } catch (error) {
+        console.error('Error:', error);
+        callback(error); // Re-throw the error for the caller to handle
+    }
+}
+
+/**
+* Get Conversation Data Api By Customer Identifier
+*/
+async function getConversationDataByCustomerIdentifier(url, channelIdentifier, callback) {
+    try {
+        const response = await fetch(`${url}/get/${channelIdentifier}`, {
+            method: 'GET', // Specify the HTTP method as GET
+            headers: {
+                'Content-Type': 'application/json' // Set appropriate headers if needed
+            }
+        });
+
+        if (response.status === 403) {
+            console.error('Forbidden: The server returned a 403 Forbidden response.');
+            callback(response);
+        } else if (!response.ok) {
+            console.error(`Failed to fetch data from ${url}/get/${channelIdentifier}: ${response.status} ${response.statusText}`);
+            callback(response);
+        } else {
+            const data = await response.json();
+            callback(data);
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        callback(error); // Re-throw the error for the caller to handle
+    }
+}
+
 /**
  * Send Message Socket Event with Message Payload in parameter
  * @param {*} data
@@ -201,12 +338,60 @@ function chatEnd(data) {
     this.socket.emit('CHAT_ENDED', data);
 }
 /**
+ *
+ * @param {*} data
+ */
+function resumeChat(data, callback) {
+    this.socket.emit("CHAT_RESUMED", data, (res) => {
+        if (res) {
+            console.log(res, 'resume chat response in sdk.');
+            callback(res);
+        }
+    });
+}
+/**
+ *
+ * @param {*} data
+ */
+function sendJoinConversation(data) {
+    this.socket.emit("joinConversation", data, (res) => {
+        console.log("[sendJoinConversation] ", data);
+        return res;
+    });
+}
+/**
+ *
+ * @param {*} customer
+ */
+function getInitChat(customer) {
+    console.log("[initChat] customer ", customer);
+
+    const requestOptions = {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(customer)
+    };
+
+    fetch(`${config.ServerUrl}/api/customer/init`, requestOptions)
+        .then(response => response.json())
+        .then(data => {
+            onInitChat(data);
+            isConversationActive = true;
+        })
+        .catch(error => {
+            console.error(`[initChat] `, error);
+            onInitChat({ error: error });
+        });
+}
+/**
  * File Upload to File Engine Function
  * @param {*} formData
  * @param {*} callback
  */
-function uploadToFileEngine(formData, callback) {
-    fetch(`${file_server_url}/api/uploadFileStream`, {
+function uploadToFileEngine(fileServerUrl, formData, callback) {
+    fetch(`${fileServerUrl}/api/uploadFileStream`, {
         method: 'POST',
         body: formData
     })
@@ -222,13 +407,38 @@ function uploadToFileEngine(formData, callback) {
 }
 
 /**
+ * Set Conversation Data Api
+ */
+async function setConversationData(url, conversationId, data) {
+    const response = await fetch(`${url}/${conversationId}/conversation-data`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+    });
+    return response;
+}
+/**
+* Get Conversation Data Api
+*/
+async function getConversationData(url, conversationId) {
+    const response = await fetch(`${url}/${conversationId}/conversation-data`);
+    if (!response.ok) {
+        throw new Error(`Failed to fetch data from ${url}/${conversationId}/conversation-data: ${response.status} ${response.statusText}`);
+    }
+    const data = await response.json();
+    return data;
+}
+
+/**
  * Webhook Notifications Functions
  * @param {*} data
  */
-function webhookNotifications(data) {
+function webhookNotifications(url, data) {
     let notifications = {};
-    notifications['text'] = `Name: ${data.attributes[0].value} ${data.attributes[1].value} Email: ${data.attributes[2].value} started a chat`
-    fetch(`${chat_webhook}`, {
+    notifications['text'] = `${data.type} ${data.name}, ${data.email}, ${data.phone} started a chat`
+    fetch(`${url}`, {
         method: 'POST',
         body: JSON.stringify(notifications),
         headers: {
@@ -238,15 +448,90 @@ function webhookNotifications(data) {
         .then((response) => response.json())
         .then((result) => {
             console.log('Success: ', result);
-            // callback(result);
         })
         .catch((error) => {
             console.error('Error: ', error);
-            // callback(error);
+        });
+}
+/**
+ *
+ * @param {*} eventsCallback
+ */
+function dialCall(eventsCallback) {
+    getDynamicExt().then((extension) => {
+        ext = extension;
+        console.log(wssServerIp, 'ip at call time');
+        userAgent = new SIP.UA({
+            uri: extension + '@' + wssServerIp,
+            transportOptions: { wsServers: 'wss://' + wssServerIp + ':' + wssServerPort, traceSip: true },
+            authorizationUser: extension,
+            password: extensionPassword,
+            log: {
+                builtinEnabled: enableLogs,
+                level: 3
+            },
+            register: true
+        });
+
+        userAgent.start();
+
+        if (typeof eventsCallback === "function") {
+            let event = {
+                event: 'get_dynamic_ext',
+                response: extension,
+                cause: ''
+            };
+            eventsCallback(event);
+        }
+
+        userAgent.on('unregistered', function (response, cause) {
+            register = false;
+            if (typeof eventsCallback === "function") {
+                let event = {
+                    event: 'unregistered',
+                    response: response,
+                    cause: cause
+                };
+                eventsCallback(event);
+            }
+        });
+
+        userAgent.on('registered', function () {
+            register = true;
+            if (typeof eventsCallback === "function") {
+                let event = {
+                    event: 'registered',
+                    response: '',
+                    cause: ''
+                };
+                eventsCallback(event);
+            }
+        });
+
+        userAgent.on('registrationFailed', function (response, cause) {
+            if (typeof eventsCallback === "function") {
+                let event = {
+                    event: 'registrationFailed',
+                    response: response,
+                    cause: cause
+                };
+                eventsCallback(event);
+            }
+        });
+    })
+        .catch((rej) => {
+            if (typeof eventsCallback === "function") {
+                let event = {
+                    event: 'get_dynamic_ext',
+                    response: '',
+                    cause: rej
+                };
+                eventsCallback(event);
+            }
         });
 }
 
-function endcall() {
+function endCall() {
     if (session === true) {
         close_session();
         clearInterval(countervar);
@@ -256,125 +541,62 @@ function endcall() {
     }
 }
 
-function diallcall(calltype, userdata) {
-    get_dynamic_ext().then((extension) => {
-        // Create a user agent named extension, connect, and register to receive invitations.
-        ext = extension;
-        console.log(wss_server_ip, 'ip at call time');
-        userAgent = new SIP.UA({
-            uri: extension + '@' + wss_server_ip,
-            transportOptions: { wsServers: 'wss://' + wss_server_ip + ':' + wss_server_port, traceSip: true },
-            authorizationUser: extension,
-            password: extension_password,
-            log: {
-                builtinEnabled: enable_logs,
-                level: 3 // log log level
-            },
-            register: true
-        });
-        // Connect the user agent
-        userAgent.start();
-        if (typeof events_callback === "function") {
-            let event = {
-                event: 'get_dynamic_ext',
-                response: extension,
-                cause: ''
-            };
-            events_callback(event);
-        }
-
-        userAgent.on('unregistered', function (response, cause) {
-            register = false;
-            if (typeof events_callback === "function") {
-                let event = {
-                    event: 'unregistered',
-                    response: response,
-                    cause: cause
-                };
-                events_callback(event);
-            }
-
-        });
-
-        userAgent.on('registered', function () {
-            register = true;
-            if (typeof events_callback === "function") {
-                let event = {
-                    event: 'registered',
-                    response: '',
-                    cause: ''
-                };
-                events_callback(event);
-            }
-        });
-
-        userAgent.on('registrationFailed', function (response, cause) {
-            if (typeof events_callback === "function") {
-                let event = {
-                    event: 'registrationFailed',
-                    response: response,
-                    cause: cause
-                };
-                events_callback(event);
-            }
-        });
-    })
-        .catch((rej) => {
-            if (typeof events_callback === "function") {
-                let event = {
-                    event: 'get_dynamic_ext',
-                    response: '',
-                    cause: rej
-                };
-                events_callback(event);
-            }
-        });
-
-}
-
-const send_invite = (media_type, videoname, videolocal, userdata) => {
+/**
+ *
+ * @param {*} mediaType
+ * @param {*} videoName
+ * @param {*} videoLocal
+ * @param {*} userData
+ * @param {*} eventsCallback
+ * @returns
+ */
+const sendInvite = (mediaType, videoName, videoLocal, userData, eventsCallback) => {
     return new Promise((resolve, reject) => {
-        var media_constraints = { audio: true, video: true };
-        toggle_video = 'web_cam';
-        mediaElement = document.getElementById(videoname);
-        if (videolocal === '') {
-            medialocal = '';
+        var mediaConstraints = { audio: true, video: true };
+        toggleVideo = 'web_cam';
+        mediaElement = document.getElementById(videoName);
+        if (videoLocal === '') {
+            mediaLocal = '';
         } else {
-            medialocal = document.getElementById(videolocal);
+            mediaLocal = document.getElementById(videoLocal);
         }
         audio = 'true';
-        if (media_type === 'audio') {
-            media_constraints = { audio: true, video: false };
+        if (mediaType === 'audio') {
+            mediaConstraints = { audio: true, video: false };
             video = 'false';
         } else {
-            media_constraints = { audio: true, video: true };
+            mediaConstraints = { audio: true, video: true };
             video = 'true';
         }
         screen = 'false';
 
         console.log("invite function has been triggered");
-        if (userdata !== null) {
-            var extraheader_string = []
-            var index = 0
-            for (const key in userdata) {
-                var keyvalue = userdata[key].trim();
-                extraheader_string.push('X-variable' + index + ":" + key + "|" + keyvalue);
-                index++;
+        if (userData !== null) {
+            var extraHeaderString = [];
+            var index = 0;
+            for (const key in userData) {
+                if (typeof userData[key] === 'string') {
+                    var keyvalue = userData[key].trim();
+                    extraHeaderString.push('X-variable' + index + ":" + key + "|" + keyvalue);
+                    index++;
+                } else {
+                    console.warn(`Value for key ${key} is not a string and will be skipped.`);
+                }
             }
         }
-        session = userAgent.invite('sip:' + dialling_uri + '@' + wss_server_ip, {
+        session = userAgent.invite('sip:' + diallingURI + '@' + wssServerIp, {
             sessionDescriptionHandlerOptions: {
-                constraints: media_constraints
+                constraints: mediaConstraints
             }
-            , extraHeaders: extraheader_string
+            , extraHeaders: extraHeaderString
         });
-        if (typeof events_callback === "function") {
+        if (typeof eventsCallback === "function") {
             let event = {
                 event: 'Channel Creating',
                 response: '',
                 cause: ''
             };
-            events_callback(event);
+            eventsCallback(event);
         }
         session.on('accepted', function () {
             // Assumes you have a media element on the DOM
@@ -389,7 +611,7 @@ const send_invite = (media_type, videoname, videolocal, userdata) => {
                 }
             });
             mediaElement.srcObject = remoteStream;
-            if (medialocal !== '') {
+            if (mediaLocal !== '') {
                 const localStream = new MediaStream();
                 session.sessionDescriptionHandler.peerConnection.getSenders().forEach((sender) => {
                     if (sender.track.kind === "video") {
@@ -397,46 +619,46 @@ const send_invite = (media_type, videoname, videolocal, userdata) => {
                         localStream.addTrack(sender.track);
                     }
                 });
-                medialocal.srcObject = localStream;
+                mediaLocal.srcObject = localStream;
             }
-            if (typeof events_callback === "function") {
+            if (typeof eventsCallback === "function") {
                 let event = {
                     event: 'session-accepted',
                     response: '',
                     cause: ''
                 };
-                events_callback(event);
+                eventsCallback(event);
             }
         })
         session.on('progress', function (response) {
-            if (typeof events_callback === "function") {
+            if (typeof eventsCallback === "function") {
                 let event = {
                     event: 'session-progress',
                     response: response,
                     cause: ''
                 };
-                events_callback(event);
+                eventsCallback(event);
             }
         })
         session.on('rejected', function (response, cause) {
-            if (typeof events_callback === "function") {
+            if (typeof eventsCallback === "function") {
                 let event = {
                     event: 'session-rejected',
                     response: response,
                     cause: cause
                 };
-                events_callback(event);
+                eventsCallback(event);
             }
         })
 
         session.on('failed', function (response, cause) {
-            if (typeof events_callback === "function") {
+            if (typeof eventsCallback === "function") {
                 let event = {
                     event: 'session-failed',
                     response: response,
                     cause: cause
                 };
-                events_callback(event);
+                eventsCallback(event);
             }
             var options = {
                 'all': true
@@ -445,91 +667,94 @@ const send_invite = (media_type, videoname, videolocal, userdata) => {
             userAgent.unregister(options);
         })
         session.on('terminated', function (message, cause) {
-            close_session();
-            if (typeof events_callback === "function") {
+            closeSession(eventsCallback);
+            if (typeof eventsCallback === "function") {
                 let event = {
                     event: 'session-terminated',
                     response: message,
                     cause: cause
                 };
-                events_callback(event);
+                eventsCallback(event);
             }
         })
         session.on('bye', function (request) {
-            if (typeof events_callback === "function") {
+            if (typeof eventsCallback === "function") {
                 let event = {
                     event: 'session-bye',
                     response: request,
                     cause: ''
                 };
-                events_callback(event);
+                eventsCallback(event);
             }
         })
         session.on('iceConnectionDisconnected', function () {
-            if (typeof events_callback === "function") {
+            if (typeof eventsCallback === "function") {
                 let event = {
                     event: 'session-iceConnectionDisconnected',
                     response: 'request',
                     cause: ''
                 };
-                events_callback(event);
+                eventsCallback(event);
             }
         })
         session.on('SessionDescriptionHandler-created', function () {
             session.sessionDescriptionHandler.on('getDescription', function (sdpWrapper) {
-                if (typeof events_callback === "function") {
+                if (typeof eventsCallback === "function") {
                     let event = {
                         event: 'session-SessionDescriptionHandler-getDescription',
                         response: sdpWrapper,
                         cause: ''
                     };
-                    events_callback(event);
+                    eventsCallback(event);
                 }
             })
             session.sessionDescriptionHandler.on('Media acquire start', function () {
-                media_acquire = 'start';
-                if (typeof events_callback === "function") {
+                mediaAcquire = 'start';
+                if (typeof eventsCallback === "function") {
                     let event = {
                         event: 'session-SessionDescriptionHandler-Media acquire start',
                         response: '',
                         cause: ''
                     };
-                    events_callback(event);
+                    eventsCallback(event);
                 }
             })
             session.sessionDescriptionHandler.on('Media acquire end', function () {
-                if (endcallbtn === true) {
-                    terminate_current_session();
-                    endcallbtn = false;
+                if (endCallBtn === true) {
+                    terminateCurrentSession(() => {
+                        eventsCallback();
+                    });
+                    endCallBtn = false;
                 }
-                media_acquire = 'end';
-                if (typeof events_callback === "function") {
+                mediaAcquire = 'end';
+                if (typeof eventsCallback === "function") {
                     let event = {
                         event: 'session-SessionDescriptionHandler-Media acquire end',
                         response: '',
                         cause: ''
                     };
-                    events_callback(event);
+                    eventsCallback(event);
                 }
             })
-            if (typeof events_callback === "function") {
+            if (typeof eventsCallback === "function") {
                 let event = {
                     event: 'session-SessionDescriptionHandler-created',
                     response: '',
                     cause: ''
                 };
-                events_callback(event);
+                eventsCallback(event);
             }
 
         });
-        resolve("successfull");
+        resolve("successful");
 
     });
 
 }
-
-
-function close_video() {
+/**
+ * Close Video Function
+ */
+function closeVideo() {
     let pc = this.session.sessionDescriptionHandler.peerConnection;
     pc.getSenders().find(function (s) {
         if (s.track.readyState == 'live' && s.track.kind === 'video') {
@@ -537,40 +762,72 @@ function close_video() {
         }
     });
 }
-function terminate_current_session() {
+
+/**
+ *
+ * @param {*} eventsCallback
+ */
+function terminateCurrentSession(eventsCallback) {
     promise1.then((value) => {
         userAgent.stop();
-    }).then(function (results) {
-        userAgent.transport.disconnect();
-    }).then(function (results) {
+    }).then(function () {
+        return userAgent.transport.disconnect();
+    }).then(function () {
         var options = {
             'all': true
         };
-        userAgent.unregister(options);
-    }).then(function (results) {
-        if (typeof events_callback === "function") {
+        return userAgent.unregister(options);
+    }).then(function () {
+        if (typeof eventsCallback === "function") {
             let event = {
                 event: 'session-session_ended',
                 response: 'userAgent unregistered',
                 cause: ''
             };
-            events_callback(event);
+            eventsCallback(event);
+        }
+    }).catch(function (error) {
+        if (typeof eventsCallback === "function") {
+            let event = {
+                event: 'session-termination-failed',
+                response: 'An error occurred during session termination',
+                cause: error.message
+            };
+            eventsCallback(event);
         }
     });
-
 }
+/**
+ * Promise
+ * @param {resolve , reject}
+ */
 const promise1 = new Promise((resolve, reject) => {
     resolve('Success!');
 });
-function close_session() {
-    if (media_acquire === 'start') {
-        endcallbtn = true;
+
+/**
+ *
+ * @param {*} eventsCallback
+ */
+function closeSession(eventsCallback) {
+    if (mediaAcquire === 'start') {
+        endCallBtn = true;
+        if (typeof eventsCallback === "function") {
+            let event = {
+                event: 'session-terminated',
+                response: 'Session terminated due to media acquire start',
+                cause: ''
+            };
+            eventsCallback(event);
+        }
     } else {
-        terminate_current_session();
+        terminateCurrentSession(eventsCallback);
     }
 }
-
-function audio_control() {
+/**
+ * Audio Call Control
+ */
+function audioControl() {
     let pc = session.sessionDescriptionHandler.peerConnection;
     if (audio === 'true') {
         pc.getSenders().find(function (s) {
@@ -601,9 +858,12 @@ function audio_control() {
 
         audio = 'true';
     }
-
 }
-function video_control() {
+
+/**
+ * Video Call Control
+ */
+function videoControl() {
     let pc = session.sessionDescriptionHandler.peerConnection;
     if (video === 'true') {
         pc.getSenders().find(function (s) {
@@ -625,8 +885,8 @@ function video_control() {
                 });
                 console.log('found sender:', sender);
                 sender.replaceTrack(videoTrack);
-                medialocal.srcObject = stream;
-                medialocal.play();
+                mediaLocal.srcObject = stream;
+                mediaLocal.play();
 
             })
             .catch(function (err) {
@@ -637,16 +897,45 @@ function video_control() {
     }
 
 }
-function screen_control() {
+
+/**
+ * ScreenControl
+ */
+function screenControl() {
     if (screen === 'false') {
         screen = 'true';
     } else {
     }
 }
 
-window.diallcall = diallcall;
-window.send_invite = send_invite;
-window.close_session = close_session;
-window.video_control = video_control;
-window.audio_control = audio_control;
-window.screen_control = screen_control;
+window.dialCall = dialCall;
+window.sendInvite = sendInvite;
+window.closeSession = closeSession;
+window.videoControl = videoControl;
+window.audioControl = audioControl;
+window.screenControl = screenControl;
+
+// module.exports = {
+//     videoControl,
+//     audioControl,
+//     dialCall,
+//     endCall,
+//     sendInvite,
+//     closeSession,
+//     terminateCurrentSession,
+//     widgetConfigs,
+//     getPreChatForm,
+//     formValidation,
+//     establishConnection,
+//     chatRequest,
+//     sendMessage,
+//     chatEnd,
+//     resumeChat,
+//     sendJoinConversation,
+//     getInitChat,
+//     uploadToFileEngine,
+//     setConversationData,
+//     getConversationData,
+//     webhookNotifications
+
+// }
