@@ -1,15 +1,13 @@
 var wssServerIp;
-var wssServerPort;
+var uriServerIp;
 var diallingURI;
 var sipExtension;
 var extensionPassword;
 var IP;
-var wssPort;
+// var wssPort;
 var dialerURI;
 var sipPassword;
 var enableLogs;
-var chatWebhook;
-var preChatForm;
 
 var session;
 var mediaElement;
@@ -24,7 +22,6 @@ var audio;
 var screen;
 var mediaAcquire = 'end';
 var endCallBtn = false;
-
 /**
  *
  * @returns
@@ -32,23 +29,20 @@ var endCallBtn = false;
 const getDynamicExt = () => new Promise((resolve, reject) => {
     resolve(sipExtension);
 });
-
 // /* Function to Include js files in the customer application*/
-function include(file) {
-    var script = document.createElement('script');
-    script.src = file;
-    script.type = 'text/javascript';
-    script.defer = true;
-    document.getElementsByTagName('head').item(0).appendChild(script);
-}
-// /* Include js files */
-include('https://cdn.socket.io/4.5.4/socket.io.min.js');
-include('https://cdnjs.cloudflare.com/ajax/libs/sip.js/0.15.11/sip-0.15.11.min.js');
+// function include(file) {
+//   var script = document.createElement('script');
+//   script.src = file;
+//   script.type = 'text/javascript';
+//   script.defer = true;
+//   document.getElementsByTagName('head').item(0).appendChild(script);
+// }
+// // /* Include js files */
+// include('https://cdn.socket.io/4.5.4/socket.io.min.js');
+// include('https://cdnjs.cloudflare.com/ajax/libs/sip.js/0.15.11/sip-0.15.11.min.js');
 
-
-console.log("socket url :", socket_url);
+// console.log("socket url :", libConfig.socket_url);
 let socket = {};
-
 /**
  * Widget Configurations Fetching Function
  * @param {*} ccmUrl
@@ -59,31 +53,26 @@ function widgetConfigs(ccmUrl, widgetIdentifier, callback) {
     fetch(`${ccmUrl}/widget-configs/${widgetIdentifier}`)
         .then(response => response.json())
         .then((data) => {
+            // console.log('widget configs:', data);
             callback(data);
-            wssServerIp = data.webRtc.wssServerIp;
-            wssServerPort = data.webRtc.wssServerPort;
+            wssServerIp = data.webRtc.wssFs;
+            uriServerIp = data.webRtc.uriFs;
             diallingURI = data.webRtc.diallingUri;
             sipExtension = data.webRtc.sipExtension;
             extensionPassword = data.webRtc.extensionPassword;
             enable_sip_logs = data.webRtc.enabledSipLogs;
             enableLogs = enable_sip_logs;
-            IP = wssServerIp;
-            wssPort = wssServerPort;
-            dialerURI = 'sip:' + diallingURI + '@' + wssServerIp;
+            IP = uriServerIp;
+            dialerURI = 'sip:' + diallingURI + '@' + uriServerIp;
             sipPassword = extensionPassword;
-
-            chatWebhook = data.webhook_url;
-            preChatForm = data.form;
         });
 }
-
 /**
  * Get Pre Chat Form
  * @param {*} formUrl
  * @param {*} formId
  * @param {*} callback
  */
-
 function getPreChatForm(formUrl, formId, callback) {
     fetch(`${formUrl}/forms/${formId}`)
         .then(response => response.json())
@@ -91,7 +80,6 @@ function getPreChatForm(formUrl, formId, callback) {
             callback(data);
         });
 }
-
 /**
  *
  * @param {*} formUrl
@@ -115,9 +103,14 @@ function formValidation(formUrl, callback) {
  */
 function establishConnection(socket_url, serviceIdentifier, channelCustomerIdentifier, callback) {
     try {
-        if (this.socket === undefined || !this.socket.connected) {
+        if (this.socket !== undefined && this.socket.connected) {
+            console.log('Resuming Existing Connection');
+            eventListeners((data) => {
+                callback(data);
+            });
+        } else {
             if (socket_url !== '') {
-                console.log("going new connection");
+                console.log('Starting New Connection');
                 let origin = new URL(socket_url).origin;
                 let path = new URL(socket_url).pathname;
                 this.socket = io(origin, {
@@ -136,7 +129,6 @@ function establishConnection(socket_url, serviceIdentifier, channelCustomerIdent
         callback(error);
     }
 }
-
 /**
  *  Socket EventListener Function
  *  1- Socket Connection Event
@@ -152,15 +144,12 @@ function eventListeners(callback) {
     this.socket.on('connect', () => {
         if (this.socket.id != undefined) {
             console.log(`you are connected with socket:`, this.socket);
-            let error = localStorage.getItem("error");
+            let error = localStorage.getItem("widget-error");
             if (error) {
-                console.log(`${error}`);
-                resumeChat({
-                    serviceIdentifier: this.socket.auth.serviceIdentifier,
-                    channelCustomerIdentifier: this.socket.auth.channelCustomerIdentifier
-                });
+                callback({ type: "SOCKET_RECONNECTED", data: this.socket });
+            } else {
+                callback({ type: "SOCKET_CONNECTED", data: this.socket });
             }
-            callback({ type: "SOCKET_CONNECTED", data: this.socket });
         }
     });
     this.socket.on('CHANNEL_SESSION_STARTED', (data) => {
@@ -177,7 +166,7 @@ function eventListeners(callback) {
     });
     this.socket.on('connect_error', (error) => {
         console.log(`unable to establish connection with the server: `, error.message);
-        localStorage.setItem("error", "1");
+        localStorage.setItem("widget-error", "1");
         callback({ type: "CONNECT_ERROR", data: error });
     });
     this.socket.on('CHAT_ENDED', (data) => {
@@ -214,7 +203,6 @@ function chatRequest(data) {
                 serviceIdentifier: data.data.serviceIdentifier,
                 additionalAttributes: additionalAttributesData
             };
-            // webhookNotifications(data.data.formData);
             this.socket.emit('CHAT_REQUESTED', obj);
             console.log(`SEND CHAT_REQUESTED DATA:`, obj);
         }
@@ -247,72 +235,11 @@ function voiceRequest(data) {
                 serviceIdentifier: data.data.serviceIdentifier,
                 additionalAttributes: additionalAttributesData
             };
-            webhookNotifications(data.data.formData);
             this.socket.emit('VOICE_REQUESTED', obj);
             console.log(`SEND VOICE_REQUESTED DATA:`, obj);
         }
     } catch (error) {
         throw error;
-    }
-}
-
-/**
- * Set Conversation Data Api By Customer Channel Identifier
- */
-async function setConversationDataByCustomerIdentifier(url, channelIdentifier, data, callback) {
-    try {
-        const response = await fetch(`${url}/${channelIdentifier}/conversation-data-by-identifier`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(data)
-        });
-
-        if (response.status === 403) {
-            console.error('Forbidden: The server returned a 403 Forbidden response.');
-            callback(response);
-        }
-
-        if (!response.ok) {
-            console.error('Network response was not ok');
-            callback(response);
-        }
-
-        const result = await response.json();
-        console.log('Success:', result);
-        callback(result);
-    } catch (error) {
-        console.error('Error:', error);
-        callback(error); // Re-throw the error for the caller to handle
-    }
-}
-
-/**
-* Get Conversation Data Api By Customer Identifier
-*/
-async function getConversationDataByCustomerIdentifier(url, channelIdentifier, callback) {
-    try {
-        const response = await fetch(`${url}/get/${channelIdentifier}`, {
-            method: 'GET', // Specify the HTTP method as GET
-            headers: {
-                'Content-Type': 'application/json' // Set appropriate headers if needed
-            }
-        });
-
-        if (response.status === 403) {
-            console.error('Forbidden: The server returned a 403 Forbidden response.');
-            callback(response);
-        } else if (!response.ok) {
-            console.error(`Failed to fetch data from ${url}/get/${channelIdentifier}: ${response.status} ${response.statusText}`);
-            callback(response);
-        } else {
-            const data = await response.json();
-            callback(data);
-        }
-    } catch (error) {
-        console.error('Error:', error);
-        callback(error); // Re-throw the error for the caller to handle
     }
 }
 
@@ -405,7 +332,6 @@ function uploadToFileEngine(fileServerUrl, formData, callback) {
             callback(error);
         });
 }
-
 /**
  * Set Conversation Data Api
  */
@@ -420,6 +346,66 @@ async function setConversationData(url, conversationId, data) {
     return response;
 }
 /**
+ * Set Conversation Data Api By Customer Channel Identifier
+ */
+async function setConversationDataByCustomerIdentifier(url, channelIdentifier, data, callback) {
+    try {
+        const response = await fetch(`${url}/${channelIdentifier}/conversation-data-by-identifier`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        });
+
+        if (response.status === 403) {
+            console.error('Forbidden: The server returned a 403 Forbidden response.');
+            callback(response);
+        }
+
+        if (!response.ok) {
+            console.error('Network response was not ok');
+            callback(response);
+        }
+
+        const result = await response.json();
+        console.log('Success:', result);
+        callback(result);
+    } catch (error) {
+        console.error('Error:', error);
+        callback(error); // Re-throw the error for the caller to handle
+    }
+}
+
+/**
+* Get Conversation Data Api By Customer Identifier
+*/
+async function getConversationDataByCustomerIdentifier(url, channelIdentifier, callback) {
+    try {
+        const response = await fetch(`${url}/get/${channelIdentifier}`, {
+            method: 'GET', // Specify the HTTP method as GET
+            headers: {
+                'Content-Type': 'application/json' // Set appropriate headers if needed
+            }
+        });
+
+        if (response.status === 403) {
+            console.error('Forbidden: The server returned a 403 Forbidden response.');
+            callback(response);
+        } else if (!response.ok) {
+            console.error(`Failed to fetch data from ${url}/get/${channelIdentifier}: ${response.status} ${response.statusText}`);
+            callback(response);
+        } else {
+            const data = await response.json();
+            callback(data);
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        callback(error); // Re-throw the error for the caller to handle
+    }
+}
+
+/**
 * Get Conversation Data Api
 */
 async function getConversationData(url, conversationId) {
@@ -432,12 +418,77 @@ async function getConversationData(url, conversationId) {
 }
 
 /**
+ * IP Data Request
+ *
+ */
+
+function getBrowserInfo(apiKey, callback) {
+    // const apiKey = '5c8c5a26decc9b30da07abf360b73256faa5b00c59b32689c9860a84';
+    try {
+        fetch(`https://api.ipdata.co?api-key=${apiKey}`, {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            }
+        }).then(response => response.json())
+            .then(data => {
+                // Handle the API response here
+                console.log("ipData API response:", data);
+                callback(data);
+            })
+            .catch(error => {
+                // Handle any errors that occur during the API call
+                console.error("ipData API Call Error", error);
+                callback(error);
+            })
+
+    } catch (error) {
+        console.error('API Function Error', error);
+        callback(error);
+    }
+}
+
+/**
+ * Callback Request To ECM
+ * @param {*} payload
+ * @param {*} url
+ */
+function callbackRequest(url, payload, callback) {
+    try {
+
+        // Make an API Call
+        fetch(`${url}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
+        })
+            .then(response => response.json())
+            .then(data => {
+                // Handle the API response here
+                console.log("API response:", data);
+                callback(data);
+            })
+            .catch(error => {
+                // Handle any errors that occur during the API call
+                console.error("API Call Error", error);
+                callback(error);
+            })
+    } catch (error) {
+        console.error('API Function Error', error);
+        callback(error);
+    }
+}
+
+/**
  * Webhook Notifications Functions
  * @param {*} data
  */
 function webhookNotifications(url, data) {
     let notifications = {};
-    notifications['text'] = `${data.type} ${data.name}, ${data.email}, ${data.phone} started a chat`
+    notifications['text'] = `${data}`
     fetch(`${url}`, {
         method: 'POST',
         body: JSON.stringify(notifications),
@@ -462,8 +513,8 @@ function dialCall(eventsCallback) {
         ext = extension;
         console.log(wssServerIp, 'ip at call time');
         userAgent = new SIP.UA({
-            uri: extension + '@' + wssServerIp,
-            transportOptions: { wsServers: 'wss://' + wssServerIp + ':' + wssServerPort, traceSip: true },
+            uri: extension + '@' + uriServerIp,
+            transportOptions: { wsServers: wssServerIp, traceSip: true },
             authorizationUser: extension,
             password: extensionPassword,
             log: {
@@ -530,17 +581,6 @@ function dialCall(eventsCallback) {
             }
         });
 }
-
-function endCall() {
-    if (session === true) {
-        close_session();
-        clearInterval(countervar);
-    } else {
-        toggleFab();
-        hideChat(0);
-    }
-}
-
 /**
  *
  * @param {*} mediaType
@@ -584,7 +624,7 @@ const sendInvite = (mediaType, videoName, videoLocal, userData, eventsCallback) 
                 }
             }
         }
-        session = userAgent.invite('sip:' + diallingURI + '@' + wssServerIp, {
+        session = userAgent.invite('sip:' + diallingURI + '@' + uriServerIp, {
             sessionDescriptionHandlerOptions: {
                 constraints: mediaConstraints
             }
@@ -762,7 +802,6 @@ function closeVideo() {
         }
     });
 }
-
 /**
  *
  * @param {*} eventsCallback
@@ -804,7 +843,6 @@ function terminateCurrentSession(eventsCallback) {
 const promise1 = new Promise((resolve, reject) => {
     resolve('Success!');
 });
-
 /**
  *
  * @param {*} eventsCallback
@@ -859,7 +897,6 @@ function audioControl() {
         audio = 'true';
     }
 }
-
 /**
  * Video Call Control
  */
@@ -897,7 +934,6 @@ function videoControl() {
     }
 
 }
-
 /**
  * ScreenControl
  */
@@ -915,27 +951,28 @@ window.videoControl = videoControl;
 window.audioControl = audioControl;
 window.screenControl = screenControl;
 
-// module.exports = {
-//     videoControl,
-//     audioControl,
-//     dialCall,
-//     endCall,
-//     sendInvite,
-//     closeSession,
-//     terminateCurrentSession,
-//     widgetConfigs,
-//     getPreChatForm,
-//     formValidation,
-//     establishConnection,
-//     chatRequest,
-//     sendMessage,
-//     chatEnd,
-//     resumeChat,
-//     sendJoinConversation,
-//     getInitChat,
-//     uploadToFileEngine,
-//     setConversationData,
-//     getConversationData,
-//     webhookNotifications
-
-// }
+module.exports = {
+    videoControl,
+    audioControl,
+    dialCall,
+    sendInvite,
+    closeSession,
+    terminateCurrentSession,
+    widgetConfigs,
+    getPreChatForm,
+    formValidation,
+    establishConnection,
+    chatRequest,
+    sendMessage,
+    chatEnd,
+    resumeChat,
+    sendJoinConversation,
+    getInitChat,
+    uploadToFileEngine,
+    setConversationData,
+    getConversationData,
+    setConversationDataByCustomerIdentifier,
+    getConversationDataByCustomerIdentifier,
+    webhookNotifications,
+    callbackRequest
+}
