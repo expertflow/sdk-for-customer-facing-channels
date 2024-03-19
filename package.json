@@ -1,24 +1,37 @@
 {
-  "name": "@expertflow/sdk-for-customer-facing-channels",
-  "version": "2.0.0",
-  "description": "NPM Package to install SDK for Chat, WebRTC Audio, and Video Calls that will land on Cisco Contact Center Agents handling calls using Cisco Jabber or similar in any node-based application.",
-  "main": "index.js",
+  "name": "customer-js-sdk",
+  "version": "1.0.0",
+  "description": "",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "tsc",
+    "prepare": "npm run build"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/expertflow/sdk-for-customer-facing-channels.git"
+  },
+  "author": "usama shabbir",
+  "license": "ISC",
   "keywords": [
-    "react-native",
-    "expertflow",
-    "call-center",
-    "SDK",
-    "Customer Facing Channels",
-    "WebRTC",
-    "JSsip",
-    "sip",
-    "chat",
-    "voice",
-    "video"
+    "customer",
+    "widget",
+    "form"
   ],
-  "author": "Expertflow",
-  "license": "ISC"
+  "bugs": {
+    "url": "https://github.com/expertflow/sdk-for-customer-facing-channels.git/issues"
+  },
+  "homepage": "https://github.com/expertflow/sdk-for-customer-facing-channels.git#readme",
+  "files": [
+    "lib/**/*"
+  ],
+  "dependencies": {
+    "electron": "^29.1.1",
+    "install": "^0.13.0",
+    "npm": "^10.5.0",
+    "sip": "^0.0.6",
+    "sip.js": "^0.21.2",
+    "socket.io-client": "^4.7.4"
+  }
 }
