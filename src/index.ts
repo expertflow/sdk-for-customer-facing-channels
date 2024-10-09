@@ -363,6 +363,17 @@ export function eventListeners(callback: (data: any) => void) {
 
   socket?.on("CHANNEL_SESSION_STARTED", (data) => {
     console.log(`Channel Session Started Data: `, data);
+    const gtmObject = {
+      type: "gtmDataLayer",
+      data: {
+        type: "CHAT STARTED",
+        data: {
+          customerIdentifier: data.header.channelData.channelCustomerIdentifier,
+          serviceIdentifier: data.header.channelData.serviceIdentifier,
+        },
+      },
+    };
+    window.parent.postMessage(gtmObject, "*");
     callback({ type: "CHANNEL_SESSION_STARTED", data: data });
   });
 
@@ -373,6 +384,14 @@ export function eventListeners(callback: (data: any) => void) {
 
   socket?.on("disconnect", (reason) => {
     console.error(`Connection lost with the server: `, reason);
+     // const gtmObject = {
+    //   type: "gtmDataLayer",
+    //   data: {
+    //     type: "CHAT ENDED",
+    //     data:reason
+    //   },
+    // };
+    // window.parent.postMessage(gtmObject, "*");
     callback({ type: "SOCKET_DISCONNECTED", data: reason });
   });
 
@@ -436,7 +455,17 @@ export function chatRequest(data: any) {
         serviceIdentifier: data.data.serviceIdentifier,
         additionalAttributes: additionalAttributesData,
       };
-
+        // const gtmObject = {
+      //   type: 'gtmDataLayer',
+      //   data: {
+      //     type: 'CHAT REQUESTED',
+      //     data: {
+      //       customerIdentifier: data.data.channelCustomerIdentifier,
+      //       serviceIdentifier: data.data.serviceIdentifier,
+      //     }
+      //   }
+      // }
+      // window.parent.postMessage(gtmObject, '*');
       if (socket) {
         socket.emit("CHAT_REQUESTED", obj);
         console.log(`SEND CHAT_REQUESTED DATA:`, obj);
