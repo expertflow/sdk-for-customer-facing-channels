@@ -1,6 +1,6 @@
 {
-  "name": "customer-facing-ts-sdk",
-  "version": "2.1.2",
+  "name": "customer-facing-ts-sdk-for-web-widget",
+  "version": "2.1.3",
   "description": "",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
