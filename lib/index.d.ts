@@ -50,6 +50,11 @@ export declare function getConversationData(url: string, conversationId: string)
  */
 export declare function callbackRequest(url: string, payload: any, callback: any): void;
 /**
+ * Webhook Notifications Functions
+ * @param {*} data
+ */
+export declare function webhookNotifications(webhookUrl: string, additionalData: any, data: any): void;
+/**
  *
  * @param {*} eventsCallback
  */
