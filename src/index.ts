@@ -1443,7 +1443,7 @@ export function authenticateRequest(
       // Since we're handling specific errors earlier, this catch might only be for unexpected errors
     });
 }
-export function postMessages(obj: any, callback: () => void): void {
+export function postMessages(obj: any): void {
   console.log(obj);
 
   let sipConfigs: any = {}; // Assuming sipConfigs is declared elsewhere
