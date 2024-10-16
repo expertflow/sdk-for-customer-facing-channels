@@ -50,11 +50,6 @@ export declare function getConversationData(url: string, conversationId: string)
  */
 export declare function callbackRequest(url: string, payload: any, callback: any): void;
 /**
- * Webhook Notifications Functions
- * @param {*} data
- */
-export declare function webhookNotifications(url: string, data: any): void;
-/**
  *
  * @param {*} eventsCallback
  */
@@ -105,5 +100,5 @@ export declare function screenControl(): void;
  * @param {*} data
  */
 export declare function authenticateRequest(authenticatorUrl: string, authData: any, callback: any): void;
-export declare function postMessages(obj: any, callback: () => void): void;
+export declare function postMessages(obj: any): void;
 export declare function getBrowserInfo(apiKey: any, callback: any): void;
