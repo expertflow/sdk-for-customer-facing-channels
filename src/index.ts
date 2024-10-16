@@ -837,7 +837,7 @@ export function callbackRequest(url: string, payload: any, callback: any) {
  * @param {*} data
  */
 
-function webhookNotifications(webhookUrl:string, additionalData:any, data:any) {
+export function webhookNotifications(webhookUrl:string, additionalData:any, data:any) {
   // Constructing the message dynamically based on the keys and values in the data object
   let imageUrl = modifyUrlPath(additionalData.agent_url, additionalData.icon);
 

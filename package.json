@@ -1,6 +1,6 @@
 {
-  "name": "customer-ts-sdk",
-  "version": "2.0.0",
+  "name": "customer-facing-ts-sdk",
+  "version": "2.1.2",
   "description": "",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
