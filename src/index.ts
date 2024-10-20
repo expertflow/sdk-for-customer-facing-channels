@@ -831,7 +831,15 @@ export function callbackRequest(url: string, payload: any, callback: any) {
     callback(error);
   }
 }
-
+export function sendChatMessage(data:any) {
+  data.timestamp = '';
+  socket?.emit('MESSAGE_RECEIVED', data, (res:any) => {
+    console.log('[sendChatMessage] ', res);
+    if (res.code !== 200) {
+      console.log("message not sent");
+    }
+  })
+}
 /**
  * Webhook Notifications Functions
  * @param {*} data
