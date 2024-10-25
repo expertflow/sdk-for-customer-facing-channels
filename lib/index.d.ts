@@ -5,7 +5,7 @@ export declare function establishConnection(socket_url: string, serviceIdentifie
 export declare function eventListeners(callback: (data: any) => void): void;
 export declare function chatRequest(data: any): void;
 export declare function voiceRequest(data: any): void;
-export declare function sendMessage(data: any): void;
+export declare function sendMessage(message: any, dialogId: any): void;
 export declare function chatEnd(data: any): void;
 /**
  *
@@ -106,4 +106,5 @@ export declare function screenControl(): void;
  */
 export declare function authenticateRequest(authenticatorUrl: string, authData: any, callback: any): void;
 export declare function postMessages(obj: any): void;
+export declare function sendChatMessage(data: any): void;
 export declare function getBrowserInfo(apiKey: any, callback: any): void;
