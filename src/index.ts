@@ -362,16 +362,33 @@ export function widgetConfigs(
     .then((response) => response.json())
     .then((data) => {
       callback(data);
-      wssServerIp = data.webRtc.wssFs;
-      uriServerIp = data.webRtc.uriFs;
-      diallingURI = data.webRtc.diallingUri;
-      sipExtension = data.webRtc.sipExtension;
-      extensionPassword = data.webRtc.extensionPassword;
-      enable_sip_logs = data.webRtc.enabledSipLogs;
-      enableLogs = enable_sip_logs;
-      IP = uriServerIp;
-      dialerURI = "sip:" + diallingURI + "@" + uriServerIp;
-      sipPassword = extensionPassword;
+      
+
+      const webRtc = data.webRtc;
+      if (webRtc) {
+        wssServerIp = webRtc.wssFs ?? "defaultWssFsValue"; // Add a fallback value if undefined
+        uriServerIp = webRtc.uriFs ?? "defaultUriFsValue";
+        diallingURI = webRtc.diallingUri ?? "defaultDiallingUri";
+        sipExtension = webRtc.sipExtension ?? "defaultSipExtension";
+        extensionPassword = webRtc.extensionPassword ?? "defaultPassword";
+        enable_sip_logs = webRtc.enabledSipLogs ?? false;
+        enableLogs = enable_sip_logs;
+        IP = uriServerIp;
+        dialerURI = "sip:" + diallingURI + "@" + uriServerIp;
+        sipPassword = extensionPassword;
+      } else {
+        console.error("webRtc configuration is missing in the response.");
+      }
+    //   wssServerIp = data.webRtc.wssFs;
+    //   uriServerIp = data.webRtc.uriFs;
+    //   diallingURI = data.webRtc.diallingUri;
+    //   sipExtension = data.webRtc.sipExtension;
+    //   extensionPassword = data.webRtc.extensionPassword;
+    //   enable_sip_logs = data.webRtc.enabledSipLogs;
+    //   enableLogs = enable_sip_logs;
+    //   IP = uriServerIp;
+    //   dialerURI = "sip:" + diallingURI + "@" + uriServerIp;
+    //   sipPassword = extensionPassword;
     });
 }
 
@@ -589,17 +606,60 @@ export function voiceRequest(data: any) {
   }
 }
 
-export function sendMessage(data: any) {
-  data.timestamp = "";
-  if (socket) {
-    socket.emit("MESSAGE_RECEIVED", data, (res: any) => {
-      console.log("[sendMessage] ", res);
-      if (res.code !== 200) {
-        console.log("message not sent");
+// export function sendMessage(data: any) {
+//   data.timestamp = "";
+//   if (socket) {
+//     socket.emit("MESSAGE_RECEIVED", data, (res: any) => {
+//       console.log("[sendMessage] ", res);
+//       if (res.code !== 200) {
+//         console.log("message not sent");
+//       }
+//     });
+//   }
+// }
+export function sendMessage(message:any, dialogId:any) {
+    var destination = 0
+    var index = getCallIndex(dialogId);
+    var sessionall = null
+    if (index !== -1) {
+      sessionall = calls[index];
+    }
+    if (!sessionall) {
+      return
+    }
+    //callType = "OUT" means its a Customer Call and we are on Customer Widget
+    if (sessionall.response.dialog.callType == "OUT") {
+      // if (dialogStatedata && dialogStatedata.response && dialogStatedata.response.dialog) {
+      destination = sessionall.additionalDetail.agentExt
+      // }
+    }
+    else {
+      if (typeof sessionall.session.incomingInviteRequest !== 'undefined') {
+        destination = sessionall.session.incomingInviteRequest.message.from.uri.normal.user
       }
-    });
+      else if (typeof sessionall.session.outgoingInviteRequest !== 'undefined') {
+        destination = sessionall.session.outgoingInviteRequest.message.to.uri.normal.user
+      }
+    }
+  
+    // if(sessionall.response.dialog.callType !== "OUT"){
+    //     if (typeof sessionall.session.incomingInviteRequest !== 'undefined'){
+    //         destination = sessionall.session.incomingInviteRequest.message.from.uri.normal.user
+    //     }
+    //     else if (typeof sessionall.session.outgoingInviteRequest !== 'undefined'){
+    //         destination = sessionall.session.outgoingInviteRequest.message.to.uri.normal.user
+    //     }
+    // }
+  
+    // else if(sessionall.response.dialog.callType == "OUT"){
+  
+    // }
+  
+    const message_targetUri_value = new SIP.URI("sip", destination, sipConfigs.uriFs)
+    message = new SIP.Messager(userAgent, message_targetUri_value, JSON.stringify(message));
+    message.message();
   }
-}
+  
 
 export function chatEnd(data: any) {
   // Chat Disconnection Socket Event
@@ -831,15 +891,7 @@ export function callbackRequest(url: string, payload: any, callback: any) {
     callback(error);
   }
 }
-export function sendChatMessage(data:any) {
-  data.timestamp = '';
-  socket?.emit('MESSAGE_RECEIVED', data, (res:any) => {
-    console.log('[sendChatMessage] ', res);
-    if (res.code !== 200) {
-      console.log("message not sent");
-    }
-  })
-}
+
 /**
  * Webhook Notifications Functions
  * @param {*} data
@@ -1821,6 +1873,15 @@ function generateConversionEvent(dialogId:any, streamType:any, streamStatus:any,
   mediaConversion.dialog.timeStamp = datetime;
   sendCallMessage(mediaConversion, dialogId);
 }
+export function sendChatMessage(data:any) {
+    data.timestamp = '';
+    socket?.emit('MESSAGE_RECEIVED', data, (res:any) => {
+      console.log('[sendChatMessage] ', res);
+      if (res.code !== 200) {
+        console.log("message not sent");
+      }
+    })
+  }
 function sendCallMessage(message: any, dialogId: string): void {
   let destination: string = "";
   const index: number = getCallIndex(dialogId);
@@ -3625,43 +3686,50 @@ const myMediaStreamFactory = async (
 };
 
 
-async function permissionDenied(error: any, constraints: MediaConstraints): Promise<void> {
+async function permissionDenied(error: any,constraints: MediaConstraints ): Promise<void> {
+  console.log(constraints);
+  
   if (error.name === "NotAllowedError" || error.name === "PermissionDeniedError") {
     try {
       const permissions = await Promise.all([
         navigator.permissions.query({ name: "camera" as PermissionName }),
         navigator.permissions.query({ name: "microphone" as PermissionName }),
       ]);
-
-      permissions.forEach((permission) => {
+      
+      console.log('==========> these are permissions', permissions);
+      
+      permissions.forEach((permission, index) => {
         console.log(permission);
-        console.log(constraints);
         let denied_component = "";
 
+        // Track the permission type manually based on the order of queries
+        let permissionType = index === 0 ? "camera" : "microphone";
+
         if (permission.state === "denied") {
-          if (permission.name === "microphone") {
+          if (permissionType === "microphone") {
             denied_component = "audio";
-          }
-          if (permission.name === "camera") {
+          } else if (permissionType === "camera") {
             denied_component = "video";
           }
           alert(`Access to ${denied_component} is denied. Please enable it in your browser settings.`);
         }
 
-        if (permission.state === "prompt" && permission.name === "camera") {
+        if (permission.state === "prompt" && permissionType === "camera") {
           denied_component = "Screen-share";
-          alert(`Access to ${denied_component} is denied. Please enable it in your browser settings.`);
+          alert(`Access to ${denied_component} is required. Please allow it in your browser settings.`);
         }
       });
+      
     } catch (permissionError) {
       console.error("Error querying permissions: ", permissionError);
     }
   }
 
   if (error.name === "NotFoundError") {
-    alert("Audio/Video Device Not Found. Please make sure your Audio/Video Device are working.");
+    alert("Audio/Video Device Not Found. Please make sure your Audio/Video Devices are working.");
   }
 }
+
 
 
 // Number of times to attempt reconnection before giving up
