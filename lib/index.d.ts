@@ -1,3 +1,4 @@
+export declare function include(file: string): void;
 export declare function widgetConfigs(ccmUrl: string, widgetIdentifier: string, callback: (data: any) => void): void;
 export declare function getPreChatForm(formUrl: string, formId: string, callback: (data: any) => void): void;
 export declare function formValidation(formUrl: string, callback: (data: any) => void): void;

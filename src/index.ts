@@ -346,7 +346,7 @@ var inviteDelegate = {
 //   document?.getElementsByTagName('head').item(0).appendChild(script);
 // }
 
-function include(file: string): void {
+export function include(file: string): void {
   const script = document.createElement("script");
   script.src = file;
   script.type = "text/javascript";
@@ -363,6 +363,7 @@ function include(file: string): void {
 include(
   "https://cdnjs.cloudflare.com/ajax/libs/sip.js/0.15.11/sip-0.15.11.min.js"
 );
+// include("./Sip/sip-0.21.2.min.js");
 declare var SIP: any;
 /**
  *

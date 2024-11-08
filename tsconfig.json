@@ -6,6 +6,6 @@
     "outDir": "./lib",
     "strict": true
   },
-  "include": ["src"],
+  "include": ["src", "lib/Sip"],
   "exclude": ["node_modules"]
 }
