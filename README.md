@@ -48,53 +48,123 @@ Make sure to pass following configurations from config file to SDK
 | `channel_identifier` | String value required to push data as customer identifer. | `channel_identifier = "phone"`              |
 | `channel`            | String value required to check client device info.        | `channel = "Mobile"`                        |
 
-<!-- ## Widget Configurations for webRTC
+## 🔧 Widget Configuration (Chat + WebRTC)
+
 Make sure you have access to Unified Admin Panel of the Expertflow CX. The Following configurations are needs to be added in the Web Widget Settings.
 
-| Properties          | Explanation                              | Sample Value                                                                                             |
-| :------------------ | :--------------------------------------- | :------------------------------------------------------------------------------------------------------- |
-| `wssServerIp`       | String value of EF switch IP or FQDN   | `wssServerIp = '192.168.1.201'`                                                                          |
-| `wssServerPort`     | String value of EF switch webRTC port  | `wssServerPort = '7443'`                                                                                 |
-| `diallingUri`       | EF switch DN                           | `diallingUri = '369852'`                                                                                 |
-| `sipExtension`      | Extension dedicated for dialling       | `sipExtension = 'ext'`                                                                                   |
-| `extensionPassword` | Extension password for registration    | `extensionPassword = 'password'`                                                                         |
-| `webSocket`         | String value required to get web socket. | `webSocket = "ws"`                                                                                       |
-| `iceServers`        | Set of array values required to get servers | `iceServers : [{"urls": [ "stun: stun.l.google.com:19302", "stun: stun1.l.google.com:19302"]}]`      |
-| `form`              | Pre-chat form Id from Unified Admin Forms | `form = "12312312sdfsdf23123"`                                                                          | -->
+| Property                   | Description                                                  | Example Value                                                                                          |
+|---------------------------|--------------------------------------------------------------|----------------------------------------------------------------------------------------------------------|
+| `id`                      | Unique widget config ID                                      | `67e639eeac7c130e2f4039e3`                                                                              |
+| `widgetIdentifier`        | Widget platform name                                         | `Web`                                                                                                   |
+| `theme`                   | Primary theme color for the widget                           | `#2889e9`                                                                                                |
+| `title`                   | Main title on widget                                         | `Expertflow`                                                                                            |
+| `subTitle`                | Subtitle under the main title                                | `Cx`                                                                                                     |
+| `enableFontResize`        | Allow font resizing in widget                                | `true`                                                                                                   |
+| `enableEmoji`             | Enable emoji picker                                          | `true`                                                                                                   |
+| `enableFileTransfer`      | Allow file sharing                                           | `true`                                                                                                   |
+| `enableDynamicLink`       | Enable rich link previews                                    | `true`                                                                                                   |
+| `enableDownloadTranscript`| Allow users to download chat transcript                      | `true`                                                                                                   |
+| `customerReconnectTime`   | Session reconnect timeout (0 = no reconnect)                 | `0`                                                                                                      |
+| `language.code`           | Default language code                                        | `en`                                                                                                     |
+| `form`                    | Pre-chat form ID                                             | `67e639de74315a03beb7b06f`                                                                              |
 
-## In-App Customer Channels with our SDKs & CDN links
+### 📞 WebRTC Configuration
 
-This is fully customizable and easy to use. Now, it has become possible with Expertflow CX's SDKs and CDN links for:
+| Property                   | Description                                                  | Example Value                                                                                          |
+|---------------------------|--------------------------------------------------------------|----------------------------------------------------------------------------------------------------------|
+| `webRtc.enableWebRtc`     | Enable/disable WebRTC feature                                | `true`                                                                                                   |
+| `webRtc.diallingUri`      | EF switch DN used for dialling                               | `369852`                                                                                                 |
+| `webRtc.sipExtension`     | SIP extension number                                         | `1001`                                                                                                   |
+| `webRtc.enabledSipLogs`   | Enable SIP debug logs                                        | `true`                                                                                                   |
+| `webRtc.extensionPassword`| SIP extension password                                       | `supersecurepassword`                                                                                    |
+| `webRtc.channel`          | Channel type                                                 | `web`                                                                                                    |
+| `webRtc.websocket`        | WebSocket protocol prefix                                    | `ws`                                                                                                     |
+| `webRtc.wssFs`            | WebSocket IP/FQDN of EFswitch                                | `192.168.1.201`                                                                                          |
+| `webRtc.uriFs`            | WebRTC (WSS) port                                            | `7443`                                                                                                   |
+| `webRtc.iceServers`       | Array of ICE server URLs                                     | `[{"urls": ["stun:stun.l.google.com:19302", "stun:stun1.l.google.com:19302"]}]`                         |
 
-- In-App Chat
-- Voice and Video Calling Widgets.
+### 📞 Optional Callback & Webhook Configs
 
-### Web Application SDK as CDN Link
+| Property                   | Description                                                  | Example Value                                                                                          |
+|---------------------------|--------------------------------------------------------------|----------------------------------------------------------------------------------------------------------|
+| `callback.enableCallback` | Enable/disable callback functionality                        | `false`                                                                                                  |
+| `callback.callbackUrl`    | Callback API URL                                             | ``                                                                                                       |
+| `callback.campaignId`     | Campaign ID                                                  | `0`                                                                                                      |
+| `callback.allowDuplicate` | Allow duplicate requests                                     | ``                                                                                                       |
+| `callback.callBackForm`   | Form ID used for callback                                    | ``                                                                                                       |
+| `callback.standaloneCallback` | Standalone callback flag                                | `false`                                                                                                  |
+| `webhook.enableWebhook`   | Enable webhook for notifications                             | `false`                                                                                                  |
+| `webhook.webhookUrl`      | Webhook receiver URL                                         | ``                                                                                                       |
 
-**Normal CDN Script**
-<br>
-`<script src="https://cdn.jsdelivr.net/gh/expertflow/sdk-for-customer-facing-channels@latest/index.js"></script>`
-<br>
 
-**Minified CDN Script**
-<br>
-`<script src="https://cdn.jsdelivr.net/gh/expertflow/sdk-for-customer-facing-channels@latest/index.min.js"></script>`
-<br>
+## 📲 In-App Customer Channels via Expertflow SDK
 
-**Note:** Just add any of these CDN script into the head tag of html file to enable the SDK.
+Easily integrate **In-App Chat**, **Voice**, and **Video Calling** into your web application using **Expertflow CX SDK** — available via CDN or by directly importing the SDK into your project assets.
 
-## Native Application SDK as NPM Installer Package
+---
 
-If Application is in React Native make sure to install additional packages to support SDK.
+### 🌐 Web Application SDK (Recommended)
 
-**NPM Command**
-<br>
-`npm i @expertflow/sdk-for-customer-facing-channels`
-<br>
+Expertflow fully supports integration via **CDN** or by adding the SDK files directly to your application's assets folder.
 
-Note: ⚠️ Available with some limitation and may cause some issues and is not recommended for now.
+#### ✅ Option 1: Include via CDN
+
+> Add **one** of the following `<script>` tags inside your HTML `<head>` to instantly enable the SDK:
+
+- **Standard CDN Script**
+```html
+<script src="https://cdn.jsdelivr.net/gh/expertflow/sdk-for-customer-facing-channels@latest/index.js"></script>
+```
+
+- **Minified CDN Script**
+```html
+<script src="https://cdn.jsdelivr.net/gh/expertflow/sdk-for-customer-facing-channels@latest/index.min.js"></script>
+```
+
+### ✅ Option 2: Include via Local Assets
+
+> If you're working offline or prefer bundling locally:
+
+- Download the SDK from the GitHub repository.
+- Copy the SDK folder into your app's assets directory.
+- Reference the SDK locally in your HTML file:
+
+```html
+<script src="/assets/sdk/index.js"></script>
+```
+Here's a professional and visually appealing way to present this information in your `README.md` file using Markdown formatting:
+
+## Native Application Support (Beta) ⚠️
+
+> **Important Notice**  
+> Native Mobile SDK support for Native Application is currently in **beta** and not recommended for production use until v4.8 is released.
+
+### Current Status
+
+🟡 **Beta Phase**  
+- Limited support available
+- Additional setup may be required
+- Not production-ready
+
+### Installation (For Early Testing Only)
+
+```bash
+npm install @expertflow/sdk-for-customer-facing-channels
+```
+
+### Recommendations
+
+✅ **For Production Use**  
+We strongly recommend using our **Web SDK** (via CDN or static assets) for stable, production-ready implementations.
+
+❌ **For Native Application**  
+Only use the Native SDK if you're willing to:
+- Work with beta software
+- Handle potential issues
+- Make necessary custom configurations
 
 **_Customer Data Payload_**
+<br>
 Here is the configuration object:
 
 ```js
@@ -154,7 +224,7 @@ Here is the configuration object:
 On calling **establish_connection( )** function → following Event Listeners are enabled during chat session and return an object in callback response.
 | **S.No#** | **Socket Event Listener** | **Callback Response** |
 | :-------- | :------------------------ | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1 | `connect` | <pre><code class="language-json">{<br> "type": "SOCKET_CONNECTED",<br> "data": {<br> "... socket details"<br> }<br>}</code></pre> |
+| 1 | `connect` |  <pre><code class="language-json">{<br> "type": "SOCKET_CONNECTED",<br> "data": {<br> "... socket details"<br> }<br>}</code></pre> |
 | 2 | `connect_error` | <pre><code class="language-json">{<br> "type": "CONNECT_ERROR",<br> "data": {<br> "... socket details"<br> }<br>}</code></pre> |
 | 3 | `disconnect` | <pre><code class="language-json">{<br> "type": "SOCKET_CONNECTED", <br> "data": {<br> "... socket details"<br> }<br>}</code></pre><br>|
 | 4 | `CHANNEL_SESSION_STARTED` | <pre><code class="language-json">{<br> "type": "CHANNEL_SESSION_STARTED",<br> "data": {<br> "... socket details"<br> }<br>}</code></pre> |
