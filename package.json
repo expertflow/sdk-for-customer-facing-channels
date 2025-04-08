@@ -1,6 +1,6 @@
 {
   "name": "@expertflow/sdk-for-customer-facing-channels",
-  "version": "2.0.0",
+  "version": "3.0.0",
   "description": "NPM Package to install SDK for Chat, WebRTC Audio, and Video Calls that will land on Cisco Contact Center Agents handling calls using Cisco Jabber or similar in any node-based application.",
   "main": "index.js",
   "scripts": {
