@@ -54,7 +54,6 @@ Make sure you have access to Unified Admin Panel of the Expertflow CX. The Follo
 
 | Property                   | Description                                                  | Example Value                                                                                          |
 |---------------------------|--------------------------------------------------------------|----------------------------------------------------------------------------------------------------------|
-| `id`                      | Unique widget config ID                                      | `67e639eeac7c130e2f4039e3`                                                                              |
 | `widgetIdentifier`        | Widget platform name                                         | `Web`                                                                                                   |
 | `theme`                   | Primary theme color for the widget                           | `#2889e9`                                                                                                |
 | `title`                   | Main title on widget                                         | `Expertflow`                                                                                            |
