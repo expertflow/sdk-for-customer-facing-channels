@@ -183,25 +183,11 @@ In order to initiate a WebRTC audio or video call, users should be registered wi
 
 | **S.No#** | **Event**                  | **Description**                                                                 | **Payload**                                                                                   |
 |-----------|----------------------------|---------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------|
-| 1         | **registered**             | If the user is successfully registered, this event is triggered.                 | ```json<br>{<br>  "event": "registered",<br>  "response": {}<br>}```                          |
-| 2         | **registrationFailed**     | If the user is unable to register to EFswitch, this error event is triggered.    | ```json<br>{<br>  "event": "registrationFailed",<br>  "response": {}<br>}```                  |
-| 3         | **Channel Creating**       | When your call has started dialing DN.                                           | ```json<br>{<br>  "event": "Channel Creating",<br>  "response": {}<br>}```                    |
-| 4         | **session-accepted**       | When your call has been connected to the agent, this event is triggered.         | ```json<br>{<br>  "event": "session-accepted",<br>  "response": {}<br>}```                    |
-| 5         | **session-failed**         | If the call fails to connect to an agent, this event is triggered.               | ```json<br>{<br>  "event": "session-failed",<br>  "response": {}<br>}```                      |
-| 6         | **session-terminated**     | When the session is terminated, this event is triggered.                         | ```json<br>{<br>  "event": "session-terminated",<br>  "response": {}<br>}```                  |
-| 7         | **session-confirmed**      | When the session is confirmed, this event is triggered.                          | ```json<br>{<br>  "event": "session-confirmed",<br>  "response": {}<br>}```                   |
-| 8         | **session-ended**          | When the session is ended, this event is triggered.                              | ```json<br>{<br>  "event": "session-ended",<br>  "response": {}<br>}```                       |
-
-graph TD
-  A[registerUser(event_callback)] -->|Success| B[registered event]
-  A -->|Failure| B1[registrationFailed event]
-
-  B --> C[sendInvite(callType, mediaStreamID, localMediaStreamID, customerData, event_callback)]
-  C --> D[Channel Creating event]
-  D --> E[session-accepted event]
-  E --> F[session-confirmed event]
-  F --> G[Call Active]
-
-  G -->|User
-::contentReference[oaicite:13]{index=13}
- 
+| 1         | **registered**             | If the user is successfully registered, this event is triggered.                 |  <pre><code class="language-json">{<br>  "event": "registered",<br>  "response": {}<br>}</code></pre>                         |
+| 2         | **registrationFailed**     | If the user is unable to register to EFswitch, this error event is triggered.    | <pre><code class="language-json">{<br>  "event": "registrationFailed",<br>  "response": {}<br>}</code></pre>                  |
+| 3         | **Channel Creating**       | When your call has started dialing DN.                                           | <pre><code class="language-json">{<br>  "event": "Channel Creating",<br>  "response": {}<br>}</code></pre>                    |
+| 4         | **session-accepted**       | When your call has been connected to the agent, this event is triggered.         | <pre><code class="language-json">{<br>  "event": "session-accepted",<br>  "response": {}<br>}</code></pre>                    |
+| 5         | **session-failed**         | If the call fails to connect to an agent, this event is triggered.               | <pre><code class="language-json">{<br>  "event": "session-failed",<br>  "response": {}<br>}</code></pre>                      |
+| 6         | **session-terminated**     | When the session is terminated, this event is triggered.                         | <pre><code class="language-json">{<br>  "event": "session-terminated",<br>  "response": {}<br>}</code></pre>                  |
+| 7         | **session-confirmed**      | When the session is confirmed, this event is triggered.                          | <pre><code class="language-json">{<br>  "event": "session-confirmed",<br>  "response": {}<br>}</code></pre>                   |
+| 8         | **session-ended**          | When the session is ended, this event is triggered.                              | <pre><code class="language-json">{<br>  "event": "session-ended",<br>  "response": {}<br>}</code></pre>                       |
