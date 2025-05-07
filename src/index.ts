@@ -2730,7 +2730,7 @@ function initiate_call(
     // request.extraHeaders.push('X-Destination-Number:' + DN);
     // request.extraHeaders.push('X-Media-Type:' + calltype)
     // request.extraHeaders.push('Another-Header: Value2');
-
+    request.extraHeaders.push('X-Customer-Number:' + "0333");
     request.extraHeaders.push("X-Destination-Number:" + DN);
     request.extraHeaders.push("X-Media-Type:" + mediaType);
     // if(callType == "MONITORING"){
