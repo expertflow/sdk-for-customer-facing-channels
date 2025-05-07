@@ -432,7 +432,15 @@ export function formValidation(formUrl: string, callback: (data: any) => void) {
       callback(data);
     });
 }
-
+/**
+ * Function to Establish Connection
+ * Two Parameters
+ * 1- Customer Data
+ * 2- Call Function of socketEventListeners()
+ * @param {*} serviceIdentifier
+ * @param {*} channelCustomerIdentifier
+ * @param {*} callback
+ */
 export function establishConnection(
   socket_url: string,
   serviceIdentifier: string,
@@ -466,7 +474,17 @@ export function establishConnection(
     callback(error);
   }
 }
-
+/**
+ *  Socket EventListener Function
+ *  1- Socket Connection Event
+ *  2- Socket Discount Event
+ *  3- Socket Connection Error Event
+ *  4- Socket Message Arrived Event
+ *  5- Socket End Conversation Event
+ *  6- Socket Error
+ *  7- Channel Session Started Event
+ *  @param {*} callback
+ */
 export function eventListeners(callback: (data: any) => void) {
   socket?.on("connect", () => {
     if (socket?.id !== undefined) {
@@ -480,7 +498,7 @@ export function eventListeners(callback: (data: any) => void) {
     }
   });
 
-  socket?.on("CHANNEL_SESSION_STARTED", (data) => {
+  socket?.on("CHANNEL_SESSION_STARTED", (data:any) => {
     console.log(`Channel Session Started Data: `, data);
     const gtmObject = {
       type: "gtmDataLayer",
@@ -496,12 +514,12 @@ export function eventListeners(callback: (data: any) => void) {
     callback({ type: "CHANNEL_SESSION_STARTED", data: data });
   });
 
-  socket?.on("MESSAGE_RECEIVED", (message) => {
+  socket?.on("MESSAGE_RECEIVED", (message:any) => {
     console.log(`MESSAGE_RECEIVED received: `, message);
     callback({ type: "MESSAGE_RECEIVED", data: message });
   });
 
-  socket?.on("disconnect", (reason) => {
+  socket?.on("disconnect", (reason:any) => {
     console.error(`Connection lost with the server: `, reason);
      // const gtmObject = {
     //   type: "gtmDataLayer",
@@ -514,7 +532,7 @@ export function eventListeners(callback: (data: any) => void) {
     callback({ type: "SOCKET_DISCONNECTED", data: reason });
   });
 
-  socket?.on("connect_error", (error) => {
+  socket?.on("connect_error", (error:any) => {
     console.log(
       `unable to establish connection with the server: `,
       error.message
@@ -523,13 +541,13 @@ export function eventListeners(callback: (data: any) => void) {
     callback({ type: "CONNECT_ERROR", data: error });
   });
 
-  socket?.on("CHAT_ENDED", (data) => {
+  socket?.on("CHAT_ENDED", (data:any) => {
     console.log(`CHAT_ENDED received: `, data);
     callback({ type: "CHAT_ENDED", data: data });
     socket?.disconnect();
   });
 
-  socket?.on("ERRORS", (data) => {
+  socket?.on("ERRORS", (data:any) => {
     console.error(`ERRORS received: `, data);
     callback({ type: "ERRORS", data: data });
   });
@@ -6071,6 +6089,31 @@ interface WindowWithFunctions extends Window {
   videoControl: Function;
   audioControl: Function;
   screenControl: Function;
+}
+export function getCalendarId(
+  url: any,
+  serviceIdentifier: any,
+  callback: (data: any) => any
+): void {
+  fetch(`${url}/channels/service-identifier/${serviceIdentifier}`)
+    .then((response) => response.json())
+    .then((data) => {
+      callback(data);
+    });
+}
+
+export function getCalendarEvents(
+  calendarId: any,
+  url: any,
+  startTime: any,
+  endTime: any,
+  callback: (data: any) => void
+): void {
+  fetch(`${url}/calendars/events?calendarId=${calendarId}&startTime=${startTime}&endTime=${endTime}`)
+    .then((response) => response.json())
+    .then((data) => {
+      callback(data);
+    });
 }
 
 declare let window: WindowWithFunctions;
