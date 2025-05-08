@@ -4,8 +4,7 @@
     "module": "CommonJS",
     "declaration": true,
     "outDir": "./lib",
-    "strict": true
-  },
-  "include": ["src", "lib/Sip"],
-  "exclude": ["node_modules"]
+    "strict": true,
+    "lib": ["ES5", "ES2015", "DOM"]
+  }
 }

@@ -303,13 +303,6 @@ var inviteDelegate = {
         invitedata.response.dialog.callEndReason = match[1];
       }
     }
-  // if (consultCalldata && consultCalldata.event && consultCalldata.event === "ConsultCall") {
-    //     const match = bye.incomingByeRequest.message.data.match(/text="([^"]+)"/);
-
-    //     if (match && match[1]) {
-    //         consultCalldata.response.dialog.callEndReason = match[1];
-    //     }
-    // }
     if (
       dialogStatedata &&
       dialogStatedata.event &&
@@ -328,23 +321,8 @@ var inviteDelegate = {
         invitedata.response.dialog.callEndReason = match[1];
       }
     }
-     // if (consultCalldata && consultCalldata.event && consultCalldata.event === "dialogState") {
-    //     const match = bye.incomingByeRequest.message.data.match(/text="([^"]+)"/);
-
-    //     if (match && match[1]) {
-    //         consultCalldata.response.dialog.callEndReason = match[1];
-    //     }
-    // }
   },
 };
-/* Function to Include js files in the customer application*/
-// function include(file:any) {
-//   var script = document.createElement('script');
-//   script.src = file;
-//   script.type = 'text/javascript';
-//   script.defer = true;
-//   document?.getElementsByTagName('head').item(0).appendChild(script);
-// }
 
 export function include(file: string): void {
   const script = document.createElement("script");
@@ -359,11 +337,7 @@ export function include(file: string): void {
 }
 
 // /* Include js files */
-// include("https://cdn.socket.io/4.5.4/socket.io.min.js");
-include(
-  "https://cdnjs.cloudflare.com/ajax/libs/sip.js/0.15.11/sip-0.15.11.min.js"
-);
-// include("./Sip/sip-0.21.2.min.js");
+include("../lib/sip-0.21.2.min.js");
 declare var SIP: any;
 /**
  *
@@ -400,16 +374,6 @@ export function widgetConfigs(
       } else {
         console.error("webRtc configuration is missing in the response.");
       }
-    //   wssServerIp = data.webRtc.wssFs;
-    //   uriServerIp = data.webRtc.uriFs;
-    //   diallingURI = data.webRtc.diallingUri;
-    //   sipExtension = data.webRtc.sipExtension;
-    //   extensionPassword = data.webRtc.extensionPassword;
-    //   enable_sip_logs = data.webRtc.enabledSipLogs;
-    //   enableLogs = enable_sip_logs;
-    //   IP = uriServerIp;
-    //   dialerURI = "sip:" + diallingURI + "@" + uriServerIp;
-    //   sipPassword = extensionPassword;
     });
 }
 
@@ -521,14 +485,6 @@ export function eventListeners(callback: (data: any) => void) {
 
   socket?.on("disconnect", (reason:any) => {
     console.error(`Connection lost with the server: `, reason);
-     // const gtmObject = {
-    //   type: "gtmDataLayer",
-    //   data: {
-    //     type: "CHAT ENDED",
-    //     data:reason
-    //   },
-    // };
-    // window.parent.postMessage(gtmObject, "*");
     callback({ type: "SOCKET_DISCONNECTED", data: reason });
   });
 
@@ -592,17 +548,6 @@ export function chatRequest(data: any) {
         serviceIdentifier: data.data.serviceIdentifier,
         additionalAttributes: additionalAttributesData,
       };
-        // const gtmObject = {
-      //   type: 'gtmDataLayer',
-      //   data: {
-      //     type: 'CHAT REQUESTED',
-      //     data: {
-      //       customerIdentifier: data.data.channelCustomerIdentifier,
-      //       serviceIdentifier: data.data.serviceIdentifier,
-      //     }
-      //   }
-      // }
-      // window.parent.postMessage(gtmObject, '*');
       if (socket) {
         socket.emit("CHAT_REQUESTED", obj);
         console.log(`SEND CHAT_REQUESTED DATA:`, obj);
@@ -645,17 +590,6 @@ export function voiceRequest(data: any) {
   }
 }
 
-// export function sendMessage(data: any) {
-//   data.timestamp = "";
-//   if (socket) {
-//     socket.emit("MESSAGE_RECEIVED", data, (res: any) => {
-//       console.log("[sendMessage] ", res);
-//       if (res.code !== 200) {
-//         console.log("message not sent");
-//       }
-//     });
-//   }
-// }
 export function sendMessage(message:any, dialogId:any) {
     var destination = 0
     var index = getCallIndex(dialogId);
@@ -680,19 +614,6 @@ export function sendMessage(message:any, dialogId:any) {
         destination = sessionall.session.outgoingInviteRequest.message.to.uri.normal.user
       }
     }
-  
-    // if(sessionall.response.dialog.callType !== "OUT"){
-    //     if (typeof sessionall.session.incomingInviteRequest !== 'undefined'){
-    //         destination = sessionall.session.incomingInviteRequest.message.from.uri.normal.user
-    //     }
-    //     else if (typeof sessionall.session.outgoingInviteRequest !== 'undefined'){
-    //         destination = sessionall.session.outgoingInviteRequest.message.to.uri.normal.user
-    //     }
-    // }
-  
-    // else if(sessionall.response.dialog.callType == "OUT"){
-  
-    // }
   
     const message_targetUri_value = new SIP.URI("sip", destination, sipConfigs.uriFs)
     message = new SIP.Messager(userAgent, message_targetUri_value, JSON.stringify(message));
@@ -747,28 +668,6 @@ export function sendJoinConversation(data: any) {
  *
  * @param {*} customer
  */
-// export function getInitChat(customer: any) {
-//   console.log("[initChat] customer ", customer);
-
-//   const requestOptions = {
-//     method: "POST",
-//     headers: {
-//       "Content-Type": "application/json",
-//     },
-//     body: JSON.stringify(customer),
-//   };
-
-//   fetch(`${config?.ServerUrl}/api/customer/init`, requestOptions)
-//     .then((response) => response.json())
-//     .then((data) => {
-//       // onInitChat(data);
-//       isConversationActive = true;
-//     })
-//     .catch((error) => {
-//       console.error(`[initChat] `, error);
-//       // onInitChat({ error: error });
-//     });
-// }
 
 /**
  * File Upload to File Engine Function
@@ -2185,63 +2084,7 @@ function connect_useragent(
             incomingCallSource = "normal";
           }
         callVariableArray = [];
-     // Code for call variables
-        // if (variablelist.length === 1) {
-        //     if (variablelist[0].replace(/['"]+/g, '') == 'conference') {
 
-        //         call_variable_array.push({
-        //             "name": 'callVariable0',
-        //             "value": ''
-        //         })
-        //         for (let index = 1; index < 10; index++) {
-        //             if (invitation.incomingInviteRequest.message.headers['X-Call-Variable' + index]) {
-        //                 call_variable_array.push({
-        //                     "name": 'callVariable' + index,
-        //                     "value": invitation.incomingInviteRequest.message.headers['X-Call-Variable' + index][0]['raw']
-        //                 })
-        //                 // call_variable_array['call_variable'+index]=session.request.headers['X-Call-Variable'+index][0]['raw']
-        //             }
-        //         }
-        //     } else if (/^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$/.test(variablelist[0].replace(/['"]+/g, ''))) {
-        //         // call_variable_array['call_variable0'] = variablelist[0].replace(/['"]+/g, '');
-        //         call_variable_array.push({
-        //             "name": 'callVariable0',
-        //             "value": variablelist[0].replace(/['"]+/g, '')
-        //         })
-        //         wrapupenabler = true;
-        //     } else {
-        //         // call_variable_array['call_variable0'] = session.request.headers['X-Call-Variable0'][0]['raw'];
-        //         call_variable_array.push({
-        //             "name": 'callVariable0',
-        //             "value": invitation.incomingInviteRequest.message.headers['X-Call-Variable0'][0]['raw']
-        //         })
-        //         for (let index = 1; index < 10; index++) {
-        //             if (invitation.incomingInviteRequest.message.headers['X-Call-Variable' + index]) {
-        //                 call_variable_array.push({
-        //                     "name": 'callVariable' + index,
-        //                     "value": invitation.incomingInviteRequest.message.headers['X-Call-Variable' + index][0]['raw']
-        //                 })
-        //                 // call_variable_array['call_variable'+index]=session.request.headers['X-Call-Variable'+index][0]['raw']
-        //             }
-        //         }
-        //     }
-        // } else {
-        //     if (/^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$/.test(variablelist[0].replace(/['"]+/g, ''))) {
-        //         // call_variable_array['call_variable0'] = variablelist[0].replace(/['"]+/g, '');
-        //         call_variable_array.push({
-        //             "name": 'callVariable0',
-        //             "value": variablelist[0].replace(/['"]+/g, '')
-        //         })
-        //         wrapupenabler = true;
-        //     }
-        //     for (let index = 1; index < variablelist.length; index++) {
-        //         call_variable_array.push({
-        //             "name": 'callVariable' + index,
-        //             "value": variablelist[index]
-        //         })
-        //     }
-
-        // }
         if (invitation.incomingInviteRequest) {
           dialogStatedata.event = "dialogState";
           invitedata.event = "newInboundCall";
@@ -2623,26 +2466,6 @@ function connect_useragent(
         .then((request: any) => {
           console.log("Successfully sent REGISTER");
           console.log("Sent request = ", request);
-          // request.delegate={
-          //     onReject: (response) => {
-          //     },
-          //     onAccept: (response) => {
-
-          //         //error("generalError",loginid,response.message.reasonPhrase,callback);
-          //     },
-          //     onProgress: (response) => {
-          //         console.log("onProgress response = ", response);
-          //         //error("generalError",loginid,response.message.reasonPhrase,callback);
-          //     },
-          //     onRedirect: (response) => {
-          //         console.log("onRedirect response = ", response);
-          //         //error("generalError",loginid,response.message.reasonPhrase,callback);
-          //     },
-          //     onTrying: (response) => {
-          //         console.log("onTrying response = ", response);
-          //         //error("generalError",loginid,response.message.reasonPhrase,callback);
-          //     },
-          // }
         })
         .catch((error: any) => {
           console.error("Failed to send REGISTER", error.message);
@@ -2721,16 +2544,14 @@ function initiate_call(
 
     // request.extraHeaders.push('X-Agent-Id:' + authData.agentId);
     // request.extraHeaders.push('X-Agent-Name:' + authData.agentName);
-    // request.extraHeaders.push('X-Agent-Extension:' + authData.agentExtension);
-    // request.extraHeaders.push('X-Customer-Number:' + authData.customerNumber);
+    request.extraHeaders.push('X-Customer-Name:' + authData.customerName);
+    request.extraHeaders.push('X-Agent-Extension:' + authData.agentExtension);
+    request.extraHeaders.push('X-Customer-Number:' + authData.customerNumber);
     // request.extraHeaders.push('X-Channel:' + authData.channel);
-    // request.extraHeaders.push('X-Customer-Id:' + authData.customerId);
+    request.extraHeaders.push('X-Customer-Id:' + authData.customerId);
     // request.extraHeaders.push('X-Service-Identifier:' + authData.serviceIdentifier);
 
-    // request.extraHeaders.push('X-Destination-Number:' + DN);
-    // request.extraHeaders.push('X-Media-Type:' + calltype)
-    // request.extraHeaders.push('Another-Header: Value2');
-    request.extraHeaders.push('X-Customer-Number:' + "0333");
+    // request.extraHeaders.push('X-Customer-Number:' + "0333");
     request.extraHeaders.push("X-Destination-Number:" + DN);
     request.extraHeaders.push("X-Media-Type:" + mediaType);
     // if(callType == "MONITORING"){

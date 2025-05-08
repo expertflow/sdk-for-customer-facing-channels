@@ -2,7 +2,27 @@ export declare function include(file: string): void;
 export declare function widgetConfigs(ccmUrl: string, widgetIdentifier: string, callback: (data: any) => void): void;
 export declare function getPreChatForm(formUrl: string, formId: string, callback: (data: any) => void): void;
 export declare function formValidation(formUrl: string, callback: (data: any) => void): void;
+/**
+ * Function to Establish Connection
+ * Two Parameters
+ * 1- Customer Data
+ * 2- Call Function of socketEventListeners()
+ * @param {*} serviceIdentifier
+ * @param {*} channelCustomerIdentifier
+ * @param {*} callback
+ */
 export declare function establishConnection(socket_url: string, serviceIdentifier: string, channelCustomerIdentifier: string, callback: (data: any) => void): void;
+/**
+ *  Socket EventListener Function
+ *  1- Socket Connection Event
+ *  2- Socket Discount Event
+ *  3- Socket Connection Error Event
+ *  4- Socket Message Arrived Event
+ *  5- Socket End Conversation Event
+ *  6- Socket Error
+ *  7- Channel Session Started Event
+ *  @param {*} callback
+ */
 export declare function eventListeners(callback: (data: any) => void): void;
 export declare function chatRequest(data: any): void;
 export declare function voiceRequest(data: any): void;
@@ -109,3 +129,5 @@ export declare function authenticateRequest(authenticatorUrl: string, authData: 
 export declare function postMessages(obj: any): void;
 export declare function sendChatMessage(data: any): void;
 export declare function getBrowserInfo(apiKey: any, callback: any): void;
+export declare function getCalendarId(url: any, serviceIdentifier: any, callback: (data: any) => any): void;
+export declare function getCalendarEvents(calendarId: any, url: any, startTime: any, endTime: any, callback: (data: any) => void): void;
