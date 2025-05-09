@@ -1,0 +1,30 @@
+{
+  "name": "sdk-for-customer-facing-channels",
+  "version": "1.8.0",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "copy-js": "copyfiles -u 1 src/*.js dist/",
+    "start": "node dist/index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  
+"keywords": [
+    "sdk",
+    "customer-facing",
+    "channels"
+  ],
+  "author": "saaim",
+  "license": "ISC",
+  "description": "An SDK for customer-facing channels",
+  "devDependencies": {
+    "@types/node": "^22.15.17",
+    "copyfiles": "^2.4.1",
+    "typescript": "^5.8.3"
+  },
+  "dependencies": {
+    "socket.io-client": "^4.8.1"
+  }
+  
+}
