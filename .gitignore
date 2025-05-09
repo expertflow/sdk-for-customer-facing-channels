@@ -1,8 +1,6 @@
 # Node modules
 node_modules/
 
-# TypeScript output directory
-dist/
 
 # Optional: Ignore editor-specific files
 .vscode/
