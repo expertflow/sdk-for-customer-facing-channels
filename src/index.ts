@@ -360,9 +360,9 @@ export function include(file: string): void {
 
 // /* Include js files */
 // include("https://cdn.socket.io/4.5.4/socket.io.min.js");
-include(
-  "./sip-0.21.2.min.js"
-);
+// include(
+//   "./sip-0.21.2.min.js"
+// );
 // include("./Sip/sip-0.21.2.min.js");
 declare var SIP: any;
 /**
