@@ -303,13 +303,7 @@ var inviteDelegate = {
         invitedata.response.dialog.callEndReason = match[1];
       }
     }
-  // if (consultCalldata && consultCalldata.event && consultCalldata.event === "ConsultCall") {
-    //     const match = bye.incomingByeRequest.message.data.match(/text="([^"]+)"/);
 
-    //     if (match && match[1]) {
-    //         consultCalldata.response.dialog.callEndReason = match[1];
-    //     }
-    // }
     if (
       dialogStatedata &&
       dialogStatedata.event &&
@@ -328,23 +322,8 @@ var inviteDelegate = {
         invitedata.response.dialog.callEndReason = match[1];
       }
     }
-     // if (consultCalldata && consultCalldata.event && consultCalldata.event === "dialogState") {
-    //     const match = bye.incomingByeRequest.message.data.match(/text="([^"]+)"/);
-
-    //     if (match && match[1]) {
-    //         consultCalldata.response.dialog.callEndReason = match[1];
-    //     }
-    // }
   },
 };
-/* Function to Include js files in the customer application*/
-// function include(file:any) {
-//   var script = document.createElement('script');
-//   script.src = file;
-//   script.type = 'text/javascript';
-//   script.defer = true;
-//   document?.getElementsByTagName('head').item(0).appendChild(script);
-// }
 
 export function include(file: string): void {
   const script = document.createElement("script");
@@ -353,17 +332,10 @@ export function include(file: string): void {
   script.defer = true;
   const head = document?.getElementsByTagName("head").item(0);
   if (head) {
-    console.log("sip script loaded successfully");
     head.appendChild(script);
   }
 }
 
-// /* Include js files */
-// include("https://cdn.socket.io/4.5.4/socket.io.min.js");
-include(
-  "./sip-0.21.2.min.js"
-);
-// include("./Sip/sip-0.21.2.min.js");
 declare var SIP: any;
 /**
  *
@@ -400,16 +372,6 @@ export function widgetConfigs(
       } else {
         console.error("webRtc configuration is missing in the response.");
       }
-    //   wssServerIp = data.webRtc.wssFs;
-    //   uriServerIp = data.webRtc.uriFs;
-    //   diallingURI = data.webRtc.diallingUri;
-    //   sipExtension = data.webRtc.sipExtension;
-    //   extensionPassword = data.webRtc.extensionPassword;
-    //   enable_sip_logs = data.webRtc.enabledSipLogs;
-    //   enableLogs = enable_sip_logs;
-    //   IP = uriServerIp;
-    //   dialerURI = "sip:" + diallingURI + "@" + uriServerIp;
-    //   sipPassword = extensionPassword;
     });
 }
 
@@ -592,17 +554,6 @@ export function chatRequest(data: any) {
         serviceIdentifier: data.data.serviceIdentifier,
         additionalAttributes: additionalAttributesData,
       };
-        // const gtmObject = {
-      //   type: 'gtmDataLayer',
-      //   data: {
-      //     type: 'CHAT REQUESTED',
-      //     data: {
-      //       customerIdentifier: data.data.channelCustomerIdentifier,
-      //       serviceIdentifier: data.data.serviceIdentifier,
-      //     }
-      //   }
-      // }
-      // window.parent.postMessage(gtmObject, '*');
       if (socket) {
         socket.emit("CHAT_REQUESTED", obj);
         console.log(`SEND CHAT_REQUESTED DATA:`, obj);
@@ -645,17 +596,6 @@ export function voiceRequest(data: any) {
   }
 }
 
-// export function sendMessage(data: any) {
-//   data.timestamp = "";
-//   if (socket) {
-//     socket.emit("MESSAGE_RECEIVED", data, (res: any) => {
-//       console.log("[sendMessage] ", res);
-//       if (res.code !== 200) {
-//         console.log("message not sent");
-//       }
-//     });
-//   }
-// }
 export function sendMessage(message:any, dialogId:any) {
     var destination = 0
     var index = getCallIndex(dialogId);
@@ -668,9 +608,7 @@ export function sendMessage(message:any, dialogId:any) {
     }
     //callType = "OUT" means its a Customer Call and we are on Customer Widget
     if (sessionall.response.dialog.callType == "OUT") {
-      // if (dialogStatedata && dialogStatedata.response && dialogStatedata.response.dialog) {
       destination = sessionall.additionalDetail.agentExt
-      // }
     }
     else {
       if (typeof sessionall.session.incomingInviteRequest !== 'undefined') {
@@ -680,19 +618,6 @@ export function sendMessage(message:any, dialogId:any) {
         destination = sessionall.session.outgoingInviteRequest.message.to.uri.normal.user
       }
     }
-  
-    // if(sessionall.response.dialog.callType !== "OUT"){
-    //     if (typeof sessionall.session.incomingInviteRequest !== 'undefined'){
-    //         destination = sessionall.session.incomingInviteRequest.message.from.uri.normal.user
-    //     }
-    //     else if (typeof sessionall.session.outgoingInviteRequest !== 'undefined'){
-    //         destination = sessionall.session.outgoingInviteRequest.message.to.uri.normal.user
-    //     }
-    // }
-  
-    // else if(sessionall.response.dialog.callType == "OUT"){
-  
-    // }
   
     const message_targetUri_value = new SIP.URI("sip", destination, sipConfigs.uriFs)
     message = new SIP.Messager(userAgent, message_targetUri_value, JSON.stringify(message));
@@ -743,32 +668,6 @@ export function sendJoinConversation(data: any) {
     return res;
   });
 }
-/**
- *
- * @param {*} customer
- */
-// export function getInitChat(customer: any) {
-//   console.log("[initChat] customer ", customer);
-
-//   const requestOptions = {
-//     method: "POST",
-//     headers: {
-//       "Content-Type": "application/json",
-//     },
-//     body: JSON.stringify(customer),
-//   };
-
-//   fetch(`${config?.ServerUrl}/api/customer/init`, requestOptions)
-//     .then((response) => response.json())
-//     .then((data) => {
-//       // onInitChat(data);
-//       isConversationActive = true;
-//     })
-//     .catch((error) => {
-//       console.error(`[initChat] `, error);
-//       // onInitChat({ error: error });
-//     });
-// }
 
 /**
  * File Upload to File Engine Function
@@ -2185,63 +2084,7 @@ function connect_useragent(
             incomingCallSource = "normal";
           }
         callVariableArray = [];
-     // Code for call variables
-        // if (variablelist.length === 1) {
-        //     if (variablelist[0].replace(/['"]+/g, '') == 'conference') {
 
-        //         call_variable_array.push({
-        //             "name": 'callVariable0',
-        //             "value": ''
-        //         })
-        //         for (let index = 1; index < 10; index++) {
-        //             if (invitation.incomingInviteRequest.message.headers['X-Call-Variable' + index]) {
-        //                 call_variable_array.push({
-        //                     "name": 'callVariable' + index,
-        //                     "value": invitation.incomingInviteRequest.message.headers['X-Call-Variable' + index][0]['raw']
-        //                 })
-        //                 // call_variable_array['call_variable'+index]=session.request.headers['X-Call-Variable'+index][0]['raw']
-        //             }
-        //         }
-        //     } else if (/^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$/.test(variablelist[0].replace(/['"]+/g, ''))) {
-        //         // call_variable_array['call_variable0'] = variablelist[0].replace(/['"]+/g, '');
-        //         call_variable_array.push({
-        //             "name": 'callVariable0',
-        //             "value": variablelist[0].replace(/['"]+/g, '')
-        //         })
-        //         wrapupenabler = true;
-        //     } else {
-        //         // call_variable_array['call_variable0'] = session.request.headers['X-Call-Variable0'][0]['raw'];
-        //         call_variable_array.push({
-        //             "name": 'callVariable0',
-        //             "value": invitation.incomingInviteRequest.message.headers['X-Call-Variable0'][0]['raw']
-        //         })
-        //         for (let index = 1; index < 10; index++) {
-        //             if (invitation.incomingInviteRequest.message.headers['X-Call-Variable' + index]) {
-        //                 call_variable_array.push({
-        //                     "name": 'callVariable' + index,
-        //                     "value": invitation.incomingInviteRequest.message.headers['X-Call-Variable' + index][0]['raw']
-        //                 })
-        //                 // call_variable_array['call_variable'+index]=session.request.headers['X-Call-Variable'+index][0]['raw']
-        //             }
-        //         }
-        //     }
-        // } else {
-        //     if (/^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$/.test(variablelist[0].replace(/['"]+/g, ''))) {
-        //         // call_variable_array['call_variable0'] = variablelist[0].replace(/['"]+/g, '');
-        //         call_variable_array.push({
-        //             "name": 'callVariable0',
-        //             "value": variablelist[0].replace(/['"]+/g, '')
-        //         })
-        //         wrapupenabler = true;
-        //     }
-        //     for (let index = 1; index < variablelist.length; index++) {
-        //         call_variable_array.push({
-        //             "name": 'callVariable' + index,
-        //             "value": variablelist[index]
-        //         })
-        //     }
-
-        // }
         if (invitation.incomingInviteRequest) {
           dialogStatedata.event = "dialogState";
           invitedata.event = "newInboundCall";
@@ -2623,26 +2466,6 @@ function connect_useragent(
         .then((request: any) => {
           console.log("Successfully sent REGISTER");
           console.log("Sent request = ", request);
-          // request.delegate={
-          //     onReject: (response) => {
-          //     },
-          //     onAccept: (response) => {
-
-          //         //error("generalError",loginid,response.message.reasonPhrase,callback);
-          //     },
-          //     onProgress: (response) => {
-          //         console.log("onProgress response = ", response);
-          //         //error("generalError",loginid,response.message.reasonPhrase,callback);
-          //     },
-          //     onRedirect: (response) => {
-          //         console.log("onRedirect response = ", response);
-          //         //error("generalError",loginid,response.message.reasonPhrase,callback);
-          //     },
-          //     onTrying: (response) => {
-          //         console.log("onTrying response = ", response);
-          //         //error("generalError",loginid,response.message.reasonPhrase,callback);
-          //     },
-          // }
         })
         .catch((error: any) => {
           console.error("Failed to send REGISTER", error.message);
@@ -2719,24 +2542,11 @@ function initiate_call(
     sessionall = new SIP.Inviter(userAgent, sip_uri);
     const request = sessionall.request;
 
-    // request.extraHeaders.push('X-Agent-Id:' + authData.agentId);
-    // request.extraHeaders.push('X-Agent-Name:' + authData.agentName);
-    // request.extraHeaders.push('X-Agent-Extension:' + authData.agentExtension);
-    // request.extraHeaders.push('X-Customer-Number:' + authData.customerNumber);
-    // request.extraHeaders.push('X-Channel:' + authData.channel);
-    // request.extraHeaders.push('X-Customer-Id:' + authData.customerId);
-    // request.extraHeaders.push('X-Service-Identifier:' + authData.serviceIdentifier);
-
-    // request.extraHeaders.push('X-Destination-Number:' + DN);
-    // request.extraHeaders.push('X-Media-Type:' + calltype)
-    // request.extraHeaders.push('Another-Header: Value2');
     request.extraHeaders.push('X-Customer-Number:' + "0333");
     request.extraHeaders.push("X-Destination-Number:" + DN);
     request.extraHeaders.push("X-Media-Type:" + mediaType);
-    // if(callType == "MONITORING"){
     let _callType = callType == "MONITORING" ? "MONITORING" : "OUT";
     request.extraHeaders.push("X-Calltype: " + _callType);
-    // request.extraHeaders.push('Another-Header: Value2');
 
     var constraintVideo:any = false;
     var offerToReceiveAVideo = false; // if audio
@@ -2831,7 +2641,6 @@ function initiate_call(
             dialogStatedata.response.dialog.customerNumber = dialedNumber;
             dialogStatedata.response.dialog.participants[0].stateChangeTime =
               datetime;
-            //change dialogStatedata.response.dialog.participants[0].mediaAddress = agentlogindata.agent_contact.split('/')[1].split('@')[0];
 
             outBoundDialingData.response.loginId = loginid;
             outBoundDialingData.response.dialog.fromAddress = loginid;
@@ -3102,7 +2911,6 @@ function blind_transfer_queue(
   ]);
 
   if (undefinedParams.length > 0) {
-    // console.log(`Error: The following parameter(s) are undefined or null: ${undefinedParams.join(', ')}`);
     error(
       "generalError",
       loginid,
@@ -3206,11 +3014,6 @@ function phone_hold(callback: any, dialogId: any) {
   let senders = peer.getSenders();
 
   if (!senders.length) return;
-
-  //let that = this;
-  // senders.forEach(function (sender: any) {
-  //   if (sender.track) sender.track.enabled = false;
-  // });
 
   // Hold the session by sending a re-INVITE with hold session description
   const holdOptions = {
@@ -3781,51 +3584,14 @@ function makeConsultCall(calledNumber: any, callback: any) {
         const match =
           bye.incomingByeRequest.message.data.match(/text="([^"]+)"/);
         if (match && match[1]) {
-          // if(consultCalldata.response.dialog.callEndReason != "consult-transfer"){
           consultCalldata.response.dialog.callEndReason = match[1];
-          // }
         }
         console.log(consultCalldata.response.dialog.callEndReason);
       },
-      // onRejec: (invitation) => {
-      //     console.log("onReject received", invitation);
-      //     //invitation.accept();
-      // },
-      // onRejected: (invitation) => {
-      //     console.log("we received a onRejected received", invitation);
-      //     //invitation.accept();
-      // },
+
       onCancel: (invitation:any) => {
         console.log("we received a onCancel", invitation);
       },
-      // onFailed: (invitation) => {
-      //     console.log("we received a onFailed received", invitation);
-      //     //invitation.accept();
-      // },
-      // onAccepted: (invitation) => {
-      //     console.log("we received a onAccepted received", invitation);
-      //     //invitation.accept();
-      // },
-      // onrejectionhandled: (invitation) => {
-      //     console.log("we received a onrejectionhandled received", invitation);
-      //     //invitation.accept();
-      // },
-      // onunhandledrejection: (invitation) => {
-      //     console.log("we received a onunhandledrejection received", invitation);
-      //     //invitation.accept();
-      // },
-      // onTerminated: (invitation) => {
-      //     console.log("we received a onTerminated received", invitation);
-      //     //invitation.accept();
-      // },
-      // onTerminate: (invitation) => {
-      //     console.log("we received a onTerminate received", invitation);
-      //     //invitation.accept();
-      // },
-      // onRefer: (refer) => {
-      //     console.log('we received a onRefer received : ', refer)
-      //     referral.reject();
-      // }
     };
 
     consultSession.stateChange.addListener((newState:any) => {
@@ -4504,40 +4270,6 @@ const attemptReconnection = (reconnectionAttempt = 1) => {
   );
 };
 
-// function setupRemoteMedia(session:any) {
-//   var pc = session.sessionDescriptionHandler.peerConnection;
-//   var remoteStream;
-//   remoteStream = new MediaStream();
-//   var size = pc.getReceivers().length;
-//   console.log("size is ", size);
-//   var receiver = pc.getReceivers()[0];
-//   var receiverVideo = pc.getReceivers()[1];
-//   remoteStream.addTrack(receiver.track);
-//   if (receiverVideo) {
-//     console.log("vdieo found");
-//     remoteStream.addTrack(receiverVideo.track);
-//   }
-//   remoteStream = remoteStream;
-
-//   var remoteVideo = document.getElementById("remoteVideo");
-//   if (remoteVideo) remoteVideo.srcObject = remoteStream;
-
-//   var localStream_1:any;
-//   if (pc.getSenders) {
-//     localStream_1 = new window.MediaStream();
-//     pc.getSenders().forEach(function (sender) {
-//       var track = sender.track;
-//       if (track && track.kind === "video") {
-//         localStream_1.addTrack(track);
-//       }
-//     });
-//   } else {
-//     localStream_1 = pc.getLocalStreams()[0];
-//   }
-//   var localVideo = document.getElementById("localVideo");
-//   if (localVideo) localVideo.srcObject = localStream_1;
-//   localStream = localStream_1;
-// }
 function setupRemoteMedia(session: any,callback:any): void {
   const pc = session.sessionDescriptionHandler.peerConnection;
   let remoteStream: MediaStream | undefined;
@@ -4782,8 +4514,7 @@ function attendedTransferEvent(someMessage:any, callback:any) {
     }
     dialogStatedata.response.dialog.state = "DROPPED";
     dialogStatedata.response.dialog.isCallAlreadyActive = false;
-    // console.log("callEndReason ===> "+ dialogStatedata.response.dialog.callEndReason)
-    // console.log(JSON.stringify(dialogStatedata.response.dialog))
+
     var data:any = {};
     data.response = dialogStatedata.response;
     data.event = dialogStatedata.event;
@@ -4791,8 +4522,6 @@ function attendedTransferEvent(someMessage:any, callback:any) {
     callback(dialogStatedataCopy);
     SendPostMessage(dialogStatedata);
     dialogStatedata.response.dialog.callEndReason = null;
-    // dialogStatedata = null;
-    // clearTimeout(myTimeout);
   }
 
   // Active Dialog state
@@ -4808,15 +4537,9 @@ function attendedTransferEvent(someMessage:any, callback:any) {
     dialogStatedata.response.dialog.participants[0].mute = false;
     dialogStatedata.response.dialog.participants[0].stateChangeTime = datetime;
     dialogStatedata.response.dialog.participants[0].state = "ACTIVE";
-    // if (dialogStatedata.response.dialog.callEndReason == "direct-transfered" || consultCalldata.response.dialog.callEndReason == "ATTENDED_TRANSFER") {
-    //     dialogStatedata.response.dialog.isCallEnded = 0;
-    // } else {
-    //     dialogStatedata.response.dialog.isCallEnded = 1;
-    // }
+
     dialogStatedata.response.dialog.state = "ACTIVE";
     dialogStatedata.response.dialog.isCallAlreadyActive = true;
-    // console.log("callEndReason ===> "+ dialogStatedata.response.dialog.callEndReason)
-    // console.log(JSON.stringify(dialogStatedata.response.dialog))
     var data:any = {};
     data.response = dialogStatedata.response;
     data.event = dialogStatedata.event;
@@ -4824,8 +4547,6 @@ function attendedTransferEvent(someMessage:any, callback:any) {
     callback(dialogStatedataCopy);
     SendPostMessage(dialogStatedata);
     dialogStatedata.response.dialog.callEndReason = null;
-    // dialogStatedata = null;
-    // clearTimeout(myTimeout);
   }
 }
 function agentDetailsToOtherParticiapnt(dialogId:any) {
@@ -4878,7 +4599,6 @@ function updateAgentDetails(message:any,callBack:any) {
     return;
   }
   if (message.dialog.callType == "OUT") {
-    // if (dialogStatedata && dialogStatedata.response && dialogStatedata.response.dialog) {
     if (sessionall.additionalDetail) {
       sessionall.additionalDetail.agentExt = message.dialog.agentExt;
     } else {
@@ -4886,8 +4606,6 @@ function updateAgentDetails(message:any,callBack:any) {
         agentExt: message.dialog.agentExt,
       };
     }
-    // console.log("DIALOG STATE =======>", dialogStatedata)
-    // }
   }
 }
 async function terminateAllRemainingCalls(dialogId:any) {
@@ -5033,7 +4751,6 @@ function initiate_consult_Conference(dialogId:any, callback:any) {
   ]);
 
   if (undefinedParams.length > 0) {
-    // console.log(`Error: The following parameter(s) are undefined or null: ${undefinedParams.join(', ')}`);
     error(
       "generalError",
       loginid,
@@ -5283,7 +5000,6 @@ function conferenceMemberAdded(dialogId:any, ext:any, callback:any) {
   const sysdate = new Date();
   var datetime = sysdate.toISOString();
 
-  // var _memberadded = someMessage.additionalAttributes.conference.members[0]
   var newMember = {
     actions: {
       action: ["TRANSFER_SST", "HOLD", "SEND_DTMF", "DROP"],
@@ -5323,7 +5039,6 @@ function conferenceMemberLeft(dialogId:any, ext:any, callback:any) {
   var datetime = sysdate.toISOString();
 
   var _localMembers = sessionall.response.dialog.participants;
-  // var _memberleft = someMessage.additionalAttributes.conference.members[0]
   for (var i = 0; i < _localMembers.length; i++) {
     if (ext == _localMembers[i].mediaAddress) {
       _localMembers[i].state = "DROPPED";
@@ -5819,8 +5534,6 @@ if (element) {
           consultCalldata.response.dialog.participants[0].startTime = datetime;
           consultCalldata.response.dialog.participants[0].state = "INITIATED";
           consultCalldata.response.dialog.state = "INITIATED";
-          // var { session, ...dataToPass } = consultCalldata;
-          // callback(dataToPass);
           var data:any = {};
           data.response = consultCalldata.response;
           data.event = consultCalldata.event;
@@ -5858,8 +5571,7 @@ if (element) {
             consultCalldata.response.dialog.state = "INITIATING";
             consultCalldata.response.dialog.mediaType = "audio";
             consultCalldata.response.dialog.callOriginator = "normal";
-            // var { session, ...dataToPass } = consultCalldata;
-            // callback(dataToPass);
+           
             var data:any = {};
             data.response = consultCalldata.response;
             data.event = consultCalldata.event;
@@ -5915,15 +5627,12 @@ if (element) {
           bye.incomingByeRequest.message.data.match(/text="([^"]+)"/);
 
         if (match && match[1]) {
-          // if(consultCalldata.response.dialog.callEndReason != "consult-transfer"){
           consultCalldata.response.dialog.callEndReason = match[1];
-          // }
         }
         console.log(consultCalldata.response.dialog.callEndReason);
       },
       onCancel: (invitation:any) => {
         console.log("we received a onCancel received", invitation);
-        //invitation.accept();
       },
     };
 
@@ -5984,7 +5693,6 @@ if (element) {
             ) {
               callVariableArray.push({
                 name: "callVariable0",
-               // value: data.headers["X-Call-Variable0"][0]["raw"],
               });
             } else {
               callVariableArray.push({
@@ -6000,7 +5708,6 @@ if (element) {
               ) {
                 callVariableArray.push({
                   name: "callVariable" + index,
-                 // value: data.headers["X-Call-Variable" + index],
                 });
               }
             }
@@ -6062,7 +5769,6 @@ if (element) {
             SendPostMessage(consultCalldata);
             consultCalldata.response.dialog.callEndReason = null;
             consultCalldata = null;
-            // clearTimeout(myTimeout);
           }
           calls.splice(index, 1);
           if (calls.length != 0) {
@@ -6072,7 +5778,6 @@ if (element) {
       }
     });
 
-    //addsipcallback(sessionall, 'outbound', callback);
   } else {
     error(
       "invalidState",
